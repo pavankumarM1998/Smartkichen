@@ -1,0 +1,281 @@
+const { apiResponse } = require('../utils/response');
+const aiService = require('../services/aiService');
+const db = require('../services/realtimeDbService');
+
+// Fallback recipe templates when AI fails
+const fallbackRecipes = {
+    en: {
+        rice: {
+            title: 'Simple Fried Rice',
+            description: 'A quick and easy fried rice recipe using your available ingredients',
+            difficulty: 'Easy',
+            prepTime: 10,
+            cookTime: 15,
+            estimatedCost: 5,
+            wasteSavings: 2,
+            ingredients: [
+                { name: 'rice', quantity: 2, unit: 'cups' },
+                { name: 'oil', quantity: 2, unit: 'tablespoons' },
+                { name: 'salt', quantity: 1, unit: 'teaspoon' },
+                { name: 'soy sauce', quantity: 1, unit: 'tablespoon' },
+            ],
+            steps: [
+                { stepNumber: 1, instruction: 'Heat 2 tablespoons of oil in a large wok or frying pan over medium-high heat. Make sure the pan is hot before adding the rice - you should see the oil shimmering.', duration: 2 },
+                { stepNumber: 2, instruction: 'Add the cooked rice to the hot pan, breaking up any clumps with a spatula. Spread it out evenly across the pan surface.', duration: 2 },
+                { stepNumber: 3, instruction: 'Stir-fry the rice continuously for 5-7 minutes, tossing and flipping to ensure even heating. The rice should start to get slightly crispy and golden on the edges.', duration: 7 },
+                { stepNumber: 4, instruction: 'Add soy sauce and salt to taste. Mix well to ensure the seasoning is evenly distributed throughout the rice.', duration: 1 },
+                { stepNumber: 5, instruction: 'Remove from heat and transfer to a serving dish. Serve immediately while hot and crispy. Garnish with green onions or sesame seeds if available.', duration: 1 },
+            ],
+            nutrition: {
+                calories: 250,
+                protein: 5,
+                fat: 8,
+                carbs: 40,
+                fiber: 2,
+            },
+        },
+        chicken: {
+            title: 'Simple Grilled Chicken',
+            description: 'Perfectly seasoned grilled chicken with a golden, crispy exterior',
+            difficulty: 'Easy',
+            prepTime: 10,
+            cookTime: 20,
+            estimatedCost: 8,
+            wasteSavings: 3,
+            ingredients: [
+                { name: 'chicken', quantity: 500, unit: 'grams' },
+                { name: 'salt', quantity: 1, unit: 'teaspoon' },
+                { name: 'pepper', quantity: 0.5, unit: 'teaspoon' },
+                { name: 'oil', quantity: 1, unit: 'tablespoon' },
+                { name: 'garlic powder', quantity: 0.5, unit: 'teaspoon' },
+            ],
+            steps: [
+                { stepNumber: 1, instruction: 'Pat the chicken dry with paper towels to remove excess moisture. This helps achieve a better sear and prevents steaming.', duration: 2 },
+                { stepNumber: 2, instruction: 'Season both sides of the chicken generously with salt, pepper, and garlic powder. Rub the seasonings into the meat to ensure they adhere well.', duration: 3 },
+                { stepNumber: 3, instruction: 'Heat 1 tablespoon of oil in a large skillet or grill pan over medium heat. Let the pan heat for about 2 minutes until the oil is shimmering but not smoking.', duration: 2 },
+                { stepNumber: 4, instruction: 'Carefully place the chicken in the hot pan. Cook without moving for 8-10 minutes until the bottom develops a golden-brown crust.', duration: 10 },
+                { stepNumber: 5, instruction: 'Flip the chicken and cook the other side for another 8-10 minutes. The internal temperature should reach 165°F (74°C) when fully cooked.', duration: 10 },
+                { stepNumber: 6, instruction: 'Remove from heat and let the chicken rest on a cutting board for 5 minutes. This allows the juices to redistribute, keeping the meat moist and tender.', duration: 5 },
+                { stepNumber: 7, instruction: 'Slice and serve with your favorite sides. The chicken should be juicy inside with a crispy, flavorful exterior.', duration: 2 },
+            ],
+            nutrition: {
+                calories: 300,
+                protein: 35,
+                fat: 15,
+                carbs: 2,
+                fiber: 0,
+            },
+        },
+        eggs: {
+            title: 'Classic Scrambled Eggs',
+            description: 'Fluffy, creamy scrambled eggs cooked to perfection',
+            difficulty: 'Easy',
+            prepTime: 2,
+            cookTime: 5,
+            estimatedCost: 3,
+            wasteSavings: 1,
+            ingredients: [
+                { name: 'eggs', quantity: 3, unit: 'pieces' },
+                { name: 'butter', quantity: 1, unit: 'tablespoon' },
+                { name: 'milk', quantity: 1, unit: 'tablespoon' },
+                { name: 'salt', quantity: 0.5, unit: 'teaspoon' },
+                { name: 'pepper', quantity: 0.25, unit: 'teaspoon' },
+            ],
+            steps: [
+                { stepNumber: 1, instruction: 'Crack the eggs into a medium bowl. Add milk, salt, and pepper. Whisk vigorously for about 30 seconds until the mixture is well combined and slightly frothy.', duration: 2 },
+                { stepNumber: 2, instruction: 'Heat a non-stick pan over medium-low heat. Add butter and let it melt completely, swirling to coat the entire bottom of the pan. The butter should foam but not brown.', duration: 1 },
+                { stepNumber: 3, instruction: 'Pour the egg mixture into the pan. Let it sit undisturbed for about 20 seconds until the edges just begin to set.', duration: 1 },
+                { stepNumber: 4, instruction: 'Using a silicone spatula, gently push the eggs from the edges toward the center, tilting the pan to let uncooked egg flow to the edges. Continue this process for 3-4 minutes.', duration: 4 },
+                { stepNumber: 5, instruction: 'When the eggs are mostly set but still slightly wet and glossy, remove from heat immediately. The residual heat will finish cooking them to creamy perfection.', duration: 1 },
+                { stepNumber: 6, instruction: 'Transfer to a plate and serve immediately. The eggs should be soft, fluffy, and creamy - not dry or rubbery. Garnish with fresh herbs if desired.', duration: 1 },
+            ],
+            nutrition: {
+                calories: 220,
+                protein: 18,
+                fat: 16,
+                carbs: 2,
+                fiber: 0,
+            },
+        },
+    },
+    te: {
+        rice: {
+            title: 'సింపుల్ ఫ్రైడ్ రైస్',
+            description: 'మీ అందుబాటులో ఉన్న పదార్థాలను ఉపయోగించి త్వరగా మరియు సులభంగా ఫ్రైడ్ రైస్ రెసిపీ',
+            difficulty: 'సులభం',
+            prepTime: 10,
+            cookTime: 15,
+            estimatedCost: 5,
+            wasteSavings: 2,
+            ingredients: [
+                { name: 'బియ్యం', quantity: 2, unit: 'కప్పులు' },
+                { name: 'నూనె', quantity: 2, unit: 'టేబుల్‌స్పూన్లు' },
+                { name: 'ఉప్పు', quantity: 1, unit: 'టీస్పూన్' },
+                { name: 'సోయా సాస్', quantity: 1, unit: 'టేబుల్‌స్పూన్' },
+            ],
+            steps: [
+                { stepNumber: 1, instruction: 'పెద్ద వోక్ లేదా ఫ్రైయింగ్ పాన్‌లో 2 టేబుల్‌స్పూన్ల నూనెను మధ్యం-అధిక వేడిపై వేడి చేయండి. బియ్యం జోడించే ముందు పాన్ వేడిగా ఉందని నిర్ధారించుకోండి - మీరు నూనె మెరుస్తున్నట్లు చూడాలి.', duration: 2 },
+                { stepNumber: 2, instruction: 'వండిన బియ్యాన్ని వేడి పాన్‌లోకి జోడించండి, గడ్డలను స్పాటులాతో విడదీయండి. పాన్ ఉపరితలం అంతటా సమానంగా విస్తరించండి.', duration: 2 },
+                { stepNumber: 3, instruction: 'బియ్యాన్ని 5-7 నిమిషాలు నిరంతరం వేయించండి, సమాన వేడిని నిర్ధారించడానికి తిప్పండి. బియ్యం అంచులలో కొంచెం క్రిస్పీగా మరియు బంగారు రంగులోకి మారడం ప్రారంభించాలి.', duration: 7 },
+                { stepNumber: 4, instruction: 'రుచికి సోయా సాస్ మరియు ఉప్పు జోడించండి. మసాలా బియ్యం అంతటా సమానంగా పంపిణీ చేయబడిందని నిర్ధారించుకోవడానికి బాగా కలపండి.', duration: 1 },
+                { stepNumber: 5, instruction: 'వేడి నుండి తొలగించి, సర్వింగ్ డిష్‌కు బదిలీ చేయండి. వేడిగా మరియు క్రిస్పీగా ఉన్నప్పుడు వెంటనే సర్వ్ చేయండి. అందుబాటులో ఉంటే పచ్చి ఉల్లిపాయలు లేదా నువ్వులతో అలంకరించండి.', duration: 1 },
+            ],
+            nutrition: {
+                calories: 250,
+                protein: 5,
+                fat: 8,
+                carbs: 40,
+                fiber: 2,
+            },
+        },
+        chicken: {
+            title: 'సింపుల్ గ్రిల్డ్ చికెన్',
+            description: 'బంగారు, క్రిస్పీ బాహ్య భాగంతో సంపూర్ణంగా మసాలా చేసిన గ్రిల్డ్ చికెన్',
+            difficulty: 'సులభం',
+            prepTime: 10,
+            cookTime: 20,
+            estimatedCost: 8,
+            wasteSavings: 3,
+            ingredients: [
+                { name: 'చికెన్', quantity: 500, unit: 'గ్రాములు' },
+                { name: 'ఉప్పు', quantity: 1, unit: 'టీస్పూన్' },
+                { name: 'మిరియాలు', quantity: 0.5, unit: 'టీస్పూన్' },
+                { name: 'నూనె', quantity: 1, unit: 'టేబుల్‌స్పూన్' },
+                { name: 'వెల్లుల్లి పొడి', quantity: 0.5, unit: 'టీస్పూన్' },
+            ],
+            steps: [
+                { stepNumber: 1, instruction: 'అదనపు తేమను తొలగించడానికి కాగితపు టవల్స్‌తో చికెన్‌ను పొడిగా తుడవండి. ఇది మెరుగైన సీర్‌ను సాధించడానికి మరియు ఆవిరిని నివారించడానికి సహాయపడుతుంది.', duration: 2 },
+                { stepNumber: 2, instruction: 'చికెన్ రెండు వైపులా ఉప్పు, మిరియాలు మరియు వెల్లుల్లి పొడితో ఉదారంగా మసాలా చేయండి. మసాలాలు బాగా అతుక్కునేలా మాంసంలోకి రుద్దండి.', duration: 3 },
+                { stepNumber: 3, instruction: 'పెద్ద స్కిల్లెట్ లేదా గ్రిల్ పాన్‌లో 1 టేబుల్‌స్పూన్ నూనెను మధ్యం వేడిపై వేడి చేయండి. నూనె మెరుస్తున్నప్పుడు కానీ పొగ రాకుండా ఉండే వరకు పాన్‌ను సుమారు 2 నిమిషాలు వేడి చేయనివ్వండి.', duration: 2 },
+                { stepNumber: 4, instruction: 'చికెన్‌ను జాగ్రత్తగా వేడి పాన్‌లో ఉంచండి. దిగువ భాగం బంగారు-గోధుమ రంగు క్రస్ట్‌ను అభివృద్ధి చేసే వరకు 8-10 నిమిషాలు కదలకుండా ఉడికించండి.', duration: 10 },
+                { stepNumber: 5, instruction: 'చికెన్‌ను తిప్పండి మరియు మరో 8-10 నిమిషాలు మరో వైపు ఉడికించండి. పూర్తిగా ఉడికినప్పుడు అంతర్గత ఉష్ణోగ్రత 165°F (74°C) చేరుకోవాలి.', duration: 10 },
+                { stepNumber: 6, instruction: 'వేడి నుండి తొలగించి, చికెన్‌ను కట్టింగ్ బోర్డ్‌పై 5 నిమిషాలు విశ్రాంతి తీసుకోనివ్వండి. ఇది రసాలను పునఃపంపిణీ చేయడానికి అనుమతిస్తుంది, మాంసాన్ని తేమగా మరియు మృదువుగా ఉంచుతుంది.', duration: 5 },
+                { stepNumber: 7, instruction: 'ముక్కలు చేసి మీకు ఇష్టమైన సైడ్‌లతో సర్వ్ చేయండి. చికెన్ లోపల రసవంతంగా మరియు బయట క్రిస్పీ, రుచికరమైన బాహ్యంతో ఉండాలి.', duration: 2 },
+            ],
+            nutrition: {
+                calories: 300,
+                protein: 35,
+                fat: 15,
+                carbs: 2,
+                fiber: 0,
+            },
+        },
+        eggs: {
+            title: 'క్లాసిక్ స్క్రాంబుల్డ్ గుడ్లు',
+            description: 'పరిపూర్ణతకు వండిన మెత్తని, క్రీమీ స్క్రాంబుల్డ్ గుడ్లు',
+            difficulty: 'సులభం',
+            prepTime: 2,
+            cookTime: 5,
+            estimatedCost: 3,
+            wasteSavings: 1,
+            ingredients: [
+                { name: 'గుడ్లు', quantity: 3, unit: 'ముక్కలు' },
+                { name: 'వెన్న', quantity: 1, unit: 'టేబుల్‌స్పూన్' },
+                { name: 'పాలు', quantity: 1, unit: 'టేబుల్‌స్పూన్' },
+                { name: 'ఉప్పు', quantity: 0.5, unit: 'టీస్పూన్' },
+                { name: 'మిరియాలు', quantity: 0.25, unit: 'టీస్పూన్' },
+            ],
+            steps: [
+                { stepNumber: 1, instruction: 'గుడ్లను మధ్యం గిన్నెలో పగులగొట్టండి. పాలు, ఉప్పు మరియు మిరియాలు జోడించండి. మిశ్రమం బాగా కలిసిపోయి కొంచెం నురుగుగా మారే వరకు సుమారు 30 సెకన్ల పాటు బలంగా కొట్టండి.', duration: 2 },
+                { stepNumber: 2, instruction: 'నాన్-స్టిక్ పాన్‌ను మధ్యం-తక్కువ వేడిపై వేడి చేయండి. వెన్న జోడించి పూర్తిగా కరిగేలా చేయండి, పాన్ దిగువ భాగం మొత్తాన్ని పూత పూయడానికి తిప్పండి. వెన్న నురుగు కావాలి కానీ గోధుమ రంగులోకి మారకూడదు.', duration: 1 },
+                { stepNumber: 3, instruction: 'గుడ్డు మిశ్రమాన్ని పాన్‌లోకి పోయండి. అంచులు సెట్ అవ్వడం ప్రారంభించే వరకు సుమారు 20 సెకన్ల పాటు కదలకుండా కూర్చోనివ్వండి.', duration: 1 },
+                { stepNumber: 4, instruction: 'సిలికాన్ స్పాటులా ఉపయోగించి, గుడ్లను అంచుల నుండి మధ్యలోకి మెల్లగా నెట్టండి, ఉడకని గుడ్డు అంచులకు ప్రవహించేలా పాన్‌ను వంచండి. ఈ ప్రక్రియను 3-4 నిమిషాలు కొనసాగించండి.', duration: 4 },
+                { stepNumber: 5, instruction: 'గుడ్లు ఎక్కువగా సెట్ అయినప్పుడు కానీ ఇంకా కొంచెం తడిగా మరియు మెరుస్తున్నప్పుడు, వెంటనే వేడి నుండి తొలగించండి. అవశేష వేడి వాటిని క్రీమీ పరిపూర్ణతకు ఉడికించడం ముగిస్తుంది.', duration: 1 },
+                { stepNumber: 6, instruction: 'ప్లేట్‌కు బదిలీ చేసి వెంటనే సర్వ్ చేయండి. గుడ్లు మృదువుగా, మెత్తగా మరియు క్రీమీగా ఉండాలి - పొడిగా లేదా రబ్బరుగా కాదు. కావాలనుకుంటే తాజా మూలికలతో అలంకరించండి.', duration: 1 },
+            ],
+            nutrition: {
+                calories: 220,
+                protein: 18,
+                fat: 16,
+                carbs: 2,
+                fiber: 0,
+            },
+        },
+    },
+};
+
+const generateRecipe = async (req, res, next) => {
+    try {
+        const { ingredients, healthMode = 'Normal', servings = 4, language = 'en' } = req.body;
+
+        console.log('=== RECIPE GENERATION REQUEST ===');
+        console.log('Ingredients:', ingredients);
+        console.log('Language requested:', language);
+
+        if (!ingredients || ingredients.length === 0) {
+            return apiResponse(res, 400, false, 'At least one ingredient is required');
+        }
+
+        let generatedRecipe;
+
+        try {
+            // Try to use AI service
+            generatedRecipe = await aiService.generateRecipe(
+                ingredients,
+                healthMode,
+                servings
+            );
+            console.log('AI service succeeded');
+        } catch (aiError) {
+            console.log('AI service failed, using fallback recipe:', aiError.message);
+
+            // Determine language (default to English)
+            const lang = language === 'te' ? 'te' : 'en';
+            console.log('Selected language for fallback:', lang);
+
+            const recipes = fallbackRecipes[lang];
+            console.log('Available recipes for language:', Object.keys(recipes));
+
+            // Use fallback recipe based on first ingredient
+            const firstIngredient = ingredients[0].toLowerCase();
+            console.log('First ingredient:', firstIngredient);
+
+            let template = recipes.rice; // default
+
+            if (firstIngredient.includes('chicken') || firstIngredient.includes('చికెన్')) {
+                template = recipes.chicken;
+                console.log('Selected chicken recipe');
+            } else if (firstIngredient.includes('egg') || firstIngredient.includes('గుడ్డు')) {
+                template = recipes.eggs;
+                console.log('Selected eggs recipe');
+            } else if (firstIngredient.includes('rice') || firstIngredient.includes('బియ్యం')) {
+                template = recipes.rice;
+                console.log('Selected rice recipe');
+            }
+
+            console.log('Selected recipe template title:', template.title);
+
+            generatedRecipe = {
+                ...template,
+                title: `${template.title} (Using ${ingredients.join(', ')})`,
+            };
+        }
+
+        // Save to Realtime Database
+        const recipe = await db.createDoc(db.paths.recipes, {
+            userId: req.userId,
+            title: generatedRecipe.title,
+            description: generatedRecipe.description || '',
+            difficulty: generatedRecipe.difficulty,
+            prepTime: generatedRecipe.prepTime,
+            cookTime: generatedRecipe.cookTime,
+            servings,
+            estimatedCost: generatedRecipe.estimatedCost,
+            healthMode,
+            wasteSavings: generatedRecipe.wasteSavings,
+            generatedByAI: true,
+            ingredients: generatedRecipe.ingredients || [],
+            steps: generatedRecipe.steps || [],
+            nutrition: generatedRecipe.nutrition || null,
+        });
+
+        console.log('Recipe saved with title:', recipe.title);
+        console.log('=== END RECIPE GENERATION ===');
+
+        apiResponse(res, 201, true, 'Recipe generated successfully', recipe);
+    } catch (error) {
+        next(error);
+    }
+};
+
+module.exports = { generateRecipe };

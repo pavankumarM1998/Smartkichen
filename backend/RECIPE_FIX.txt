@@ -1,0 +1,20 @@
+// Quick fix script for recipeController.js
+// Replace lines 251-261 with this code:
+
+      console.log('AI service failed, using fallback recipe:', aiError.message);
+      
+      // Determine language (default to English)
+      const lang = language === 'te' ? 'te' : 'en';
+      const recipes = fallbackRecipes[lang];
+      
+      // Use fallback recipe based on first ingredient
+      const firstIngredient = ingredients[0].toLowerCase();
+      let template = recipes.rice; // default
+      
+      if (firstIngredient.includes('chicken') || firstIngredient.includes('చికెన్')) {
+        template = recipes.chicken;
+      } else if (firstIngredient.includes('egg') || firstIngredient.includes('గుడ్డు')) {
+        template = recipes.eggs;
+      } else if (firstIngredient.includes('rice') || firstIngredient.includes('బియ్యం')) {
+        template = recipes.rice;
+      }
