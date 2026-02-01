@@ -16,8 +16,11 @@ try {
   const keyPath = path.join(__dirname, '../firebase-key.json');
   const fs = require('fs');
 
-  if (fs.existsSync(keyPath)) {
-    // Use key file if available
+  if (process.env.FIREBASE_CONFIG || process.env.FUNCTIONS_EMULATOR) {
+    // Cloud Functions / Cloud Environment (Use Application Default Credentials)
+    admin.initializeApp();
+  } else if (fs.existsSync(keyPath)) {
+    // Use key file if available (Local Development)
     const serviceAccount = require('../firebase-key.json');
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
@@ -25,7 +28,7 @@ try {
       storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
     });
   } else if (process.env.FIREBASE_PRIVATE_KEY) {
-    // Use environment variables
+    // Use environment variables (CI/CD or Render)
     admin.initializeApp({
       credential: admin.credential.cert({
         projectId: process.env.FIREBASE_PROJECT_ID,
