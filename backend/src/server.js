@@ -86,15 +86,16 @@ app.use((req, res) => {
 // Error Handler
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 5000;
+// Error Handler
+app.use(errorHandler);
 
-app.listen(PORT, () => {
-  console.log(`🚀 SmartKitchen AI Backend running on port ${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV}`);
-});
+// Only listen if NOT running in Cloud Functions
+if (!process.env.FUNCTIONS_EMULATOR && !process.env.FIREBASE_CONFIG) {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => {
+    console.log(`🚀 SmartKitchen AI Backend running on port ${PORT}`);
+    console.log(`Environment: ${process.env.NODE_ENV}`);
+  });
+}
 
-// Graceful shutdown
-process.on('SIGINT', async () => {
-  console.log('\nShutting down gracefully...');
-  process.exit(0);
-});
+module.exports = app;

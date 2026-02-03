@@ -2,7 +2,7 @@
   "name": "smartkitchen-ai-backend",
   "version": "1.0.0",
   "description": "SmartKitchen AI - Backend API Server",
-  "main": "src/server.js",
+  "main": "src/index.js",
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
@@ -41,7 +41,8 @@
     "@types/node": "^20.10.6",
     "nodemon": "^3.0.2"
   },
+  "main": "src/index.js",
   "engines": {
-    "node": ">=20.0.0"
+    "node": "18"
   }
 }
