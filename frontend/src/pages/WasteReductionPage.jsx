@@ -15,9 +15,31 @@ export default function WasteReductionPage() {
 
   const fetchPantryItems = async () => {
     try {
-      const response = await apiService.getPantry();
-      setIngredients(response.data);
+      const response = await apiService.getPantryItems();
+
+      // Handle different response structures (Robust Logic from MyPantryPage)
+      let items = [];
+
+      // Check if response.data.data exists (nested data property)
+      if (response.data && response.data.data) {
+        items = Array.isArray(response.data.data) ? response.data.data : Object.values(response.data.data);
+      }
+      // Check if response.data is directly an array
+      else if (Array.isArray(response.data)) {
+        items = response.data;
+      }
+      // Check if response.data has an items property
+      else if (response.data && Array.isArray(response.data.items)) {
+        items = response.data.items;
+      }
+      // Check if response.data is an object (convert to array)
+      else if (response.data && typeof response.data === 'object') {
+        items = Object.values(response.data);
+      }
+
+      setIngredients(Array.isArray(items) ? items : []);
     } catch (error) {
+      console.error('Error loading pantry items:', error);
       toast.error('Failed to load pantry items');
     }
   };
@@ -104,7 +126,7 @@ export default function WasteReductionPage() {
                   <div key={idx} className="bg-white rounded-lg shadow-md p-6 border-l-4 border-green-500">
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">{suggestion.title}</h3>
                     <p className="text-gray-700 mb-3">{suggestion.description}</p>
-                    
+
                     <div className="grid grid-cols-2 gap-4">
                       <div className="bg-green-50 rounded p-3">
                         <p className="text-xs text-green-600 font-semibold">Ingredients to Use</p>
