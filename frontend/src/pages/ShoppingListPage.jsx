@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 const ShoppingListPage = () => {
   const [shoppingLists, setShoppingLists] = useState([]);
   const [loading, setLoading] = useState(true);
+  // eslint-disable-next-line no-unused-vars
   const [selectedList, setSelectedList] = useState(null);
   const [newListName, setNewListName] = useState('');
 

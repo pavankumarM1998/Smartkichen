@@ -1,0 +1,14 @@
+{
+    "name": "smartkitchen-ai-root",
+    "private": true,
+    "engines": {
+        "node": "20.x"
+    },
+    "workspaces": [
+        "backend",
+        "frontend"
+    ],
+    "scripts": {
+        "install-all": "npm install"
+    }
+}

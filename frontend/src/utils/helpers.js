@@ -55,7 +55,7 @@ export const scaleQuantity = (quantity, oldServings, newServings) => {
 
 export const parseIngredientString = (ingredientStr) => {
   // Parse strings like "2 cups flour" or "1.5 tbsp salt"
-  const regex = /^([0-9.\/]+)\s+(\w+)\s+(.+)$/;
+  const regex = /^([0-9./]+)\s+(\w+)\s+(.+)$/;
   const match = ingredientStr.match(regex);
 
   if (match) {
