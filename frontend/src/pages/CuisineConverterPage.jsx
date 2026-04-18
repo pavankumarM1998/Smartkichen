@@ -27,7 +27,9 @@ export default function CuisineConverterPage() {
         recipe: recipe,
         targetCuisine: targetCuisine
       });
-      setConvertedRecipe(response.data);
+      // Handle API wrapper structure (response.data.data) or direct response
+      const recipeData = response.data.data?.convertedRecipe || response.data.convertedRecipe || response.data;
+      setConvertedRecipe(recipeData);
       toast.success('Recipe converted successfully!');
     } catch (error) {
       toast.error('Failed to convert recipe');
@@ -118,32 +120,75 @@ export default function CuisineConverterPage() {
                 <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4">
                   <h3 className="font-semibold text-gray-900 mb-2">{convertedRecipe.title}</h3>
                   <p className="text-gray-700 text-sm mb-3">{convertedRecipe.description}</p>
+                  {convertedRecipe.flavorProfile && (
+                    <p className="text-sm text-purple-700 italic border-t border-purple-200 pt-2 mt-2">
+                      ✨ <strong>Flavor Profile:</strong> {convertedRecipe.flavorProfile}
+                    </p>
+                  )}
                 </div>
 
-                <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">Key Changes:</h4>
-                  <ul className="space-y-2">
-                    {convertedRecipe.changes?.map((change, idx) => (
-                      <li key={idx} className="flex items-start gap-3">
-                        <span className="text-purple-600 font-bold">•</span>
-                        <span className="text-gray-700 text-sm">{change}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                {/* Key Changes & Substitutions */}
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2 text-sm uppercase tracking-wide">Key Changes</h4>
+                    <ul className="space-y-2">
+                      {(convertedRecipe.keyChanges || convertedRecipe.changes || []).map((change, idx) => (
+                        <li key={idx} className="flex items-start gap-2 text-sm">
+                          <span className="text-purple-600 font-bold">•</span>
+                          <span className="text-gray-700">{change}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
 
-                <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">Ingredients to Substitute:</h4>
-                  <div className="space-y-1 text-sm text-gray-700">
-                    {convertedRecipe.substitutions?.map((sub, idx) => (
-                      <p key={idx}>
-                        <span className="text-purple-600 font-medium">{sub.original}</span>
-                        {' → '}
-                        <span className="text-pink-600 font-medium">{sub.replacement}</span>
-                      </p>
-                    ))}
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2 text-sm uppercase tracking-wide">Substitutions</h4>
+                    <div className="space-y-2 text-sm">
+                      {convertedRecipe.substitutions?.map((sub, idx) => (
+                        <div key={idx} className="bg-gray-50 p-2 rounded">
+                          <span className="text-gray-500 line-through mr-2">{sub.original}</span>
+                          <span className="text-purple-600 font-semibold">→ {sub.replacement}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
+
+                {/* Ingredients List */}
+                {convertedRecipe.ingredients && (
+                  <div className="mt-4">
+                    <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                      <span className="text-xl">🥕</span> Ingredients
+                    </h4>
+                    <div className="bg-white border rounded-lg p-4 grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                      {convertedRecipe.ingredients.map((ing, idx) => (
+                        <div key={idx} className="flex justify-between items-center border-b border-gray-100 pb-1 last:border-0 hover:bg-gray-50 p-1 rounded">
+                          <span className="font-medium text-gray-800">{ing.name}</span>
+                          <span className="text-gray-500">{ing.quantity} {ing.unit}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Instructions */}
+                {convertedRecipe.steps && (
+                  <div className="mt-4">
+                    <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                      <span className="text-xl">👩‍🍳</span> Instructions
+                    </h4>
+                    <ol className="space-y-3">
+                      {convertedRecipe.steps.map((step, idx) => (
+                        <li key={idx} className="flex gap-3 text-sm text-gray-700 bg-gray-50 p-3 rounded-lg">
+                          <span className="flex-shrink-0 w-6 h-6 bg-purple-100 text-purple-700 font-bold rounded-full flex items-center justify-center text-xs">
+                            {idx + 1}
+                          </span>
+                          <span>{step}</span>
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                )}
 
                 <div className="bg-blue-50 border-l-4 border-blue-500 p-3 rounded">
                   <p className="text-sm text-blue-900"><strong>Difficulty:</strong> {convertedRecipe.difficulty}</p>

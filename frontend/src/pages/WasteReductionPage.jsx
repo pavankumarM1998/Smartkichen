@@ -52,10 +52,15 @@ export default function WasteReductionPage() {
 
     setLoading(true);
     try {
+      // Map selected IDs to ingredient names
+      const ingredientsToSend = ingredients
+        .filter(item => selectedIngredients.includes(item.id))
+        .map(item => item.ingredientName || item.name);
+
       const response = await apiService.getWasteReductionSuggestions({
-        ingredients: selectedIngredients
+        ingredients: ingredientsToSend
       });
-      setSuggestions(response.data.suggestions);
+      setSuggestions(response.data.data.suggestions || []);
       toast.success('Waste reduction suggestions generated!');
     } catch (error) {
       toast.error('Failed to generate suggestions');
@@ -100,7 +105,7 @@ export default function WasteReductionPage() {
                       className="w-4 h-4 text-green-600 rounded"
                     />
                     <div className="flex-1">
-                      <p className="font-medium text-gray-900">{item.name}</p>
+                      <p className="font-medium text-gray-900">{item.ingredientName || item.name || 'Unknown Item'}</p>
                       <p className="text-xs text-gray-500">
                         Expires: {new Date(item.expiryDate).toLocaleDateString()}
                       </p>

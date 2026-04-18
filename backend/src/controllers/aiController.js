@@ -64,8 +64,8 @@ const suggestWasteReduction = async (req, res, next) => {
   try {
     const { recipe, ingredients } = req.body;
 
-    if (!recipe || !ingredients) {
-      return apiResponse(res, 400, false, 'Recipe and ingredients are required');
+    if (!ingredients || ingredients.length === 0) {
+      return apiResponse(res, 400, false, 'Ingredients are required');
     }
 
     const suggestions = await aiService.suggestWasteReduction(recipe, ingredients);
@@ -176,6 +176,22 @@ const getSeasonalSuggestions = async (req, res, next) => {
   }
 };
 
+const convertCuisine = async (req, res, next) => {
+  try {
+    const { recipe, targetCuisine } = req.body;
+
+    if (!recipe || !targetCuisine) {
+      return apiResponse(res, 400, false, 'Recipe and target cuisine are required');
+    }
+
+    const converted = await aiService.convertCuisine(recipe, targetCuisine);
+
+    apiResponse(res, 200, true, 'Recipe converted', converted);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   rateDifficulty,
   adjustForHealthMode,
@@ -184,4 +200,5 @@ module.exports = {
   scanFridge,
   chat,
   getSeasonalSuggestions,
+  convertCuisine,
 };

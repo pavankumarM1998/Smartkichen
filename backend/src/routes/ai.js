@@ -27,4 +27,7 @@ router.post('/chat', aiController.chat);
 // Get seasonal suggestions
 router.get('/seasonal-suggestions', aiController.getSeasonalSuggestions);
 
+// Convert cuisine
+router.post('/convert-cuisine', aiController.convertCuisine);
+
 module.exports = router;

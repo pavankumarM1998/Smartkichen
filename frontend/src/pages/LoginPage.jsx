@@ -7,7 +7,7 @@ const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login, isAuthenticated } = useAuth();
+  const { login, register, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
   const [name, setName] = useState('');
@@ -31,9 +31,14 @@ const LoginPage = () => {
           navigate('/');
         }
       } else {
-        // Register logic here
-        const { register } = require('../hooks/useAuth');
-        // This would need proper implementation
+        const result = await register(email, password, name);
+        if (result.success) {
+          toast.success('Registration successful! Welcome ' + result.user.name);
+          navigate('/');
+        } else {
+          // Error is handled in catch block or result.error
+          throw new Error(result.error || 'Registration failed');
+        }
       }
     } catch (error) {
       toast.error(error.message || 'Authentication failed');

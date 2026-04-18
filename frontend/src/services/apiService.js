@@ -93,7 +93,7 @@ export const recipeService = {
     }),
 
   convertRecipeCuisine: (data) =>
-    api.post('/recipes/convert-cuisine', data),
+    api.post('/ai/convert-cuisine', data),
 };
 
 export const aiService = {

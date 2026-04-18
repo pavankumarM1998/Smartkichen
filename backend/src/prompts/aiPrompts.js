@@ -103,7 +103,7 @@ Format as JSON with these exact keys:
     "carbs": number,
     "fiber": number
   },
-  "wasteSavings": "string (tips to use leftovers or scraps)",
+  "wasteSavings": ["string (specific tips to minimize waste for THIS recipe)"],
   "tips": ["string (cooking tips, variations, serving suggestions)"]
 }
 
@@ -255,7 +255,8 @@ Return ONLY valid JSON.`;
 
 // Waste Reduction Prompt
 const wasteReductionPrompt = (recipe, ingredients) => {
-  return `Suggest ways to reduce food waste for this recipe.
+  if (recipe) {
+    return `Suggest ways to reduce food waste for this recipe.
 
 Recipe: ${recipe}
 Ingredients: ${ingredients.join(', ')}
@@ -280,6 +281,42 @@ Return JSON:
 }
 
 Return ONLY valid JSON.`;
+  } else {
+    // Ingredients-only mode (for Waste Reduction Page)
+    return `Suggest creative ways to use these specific ingredients to prevent food waste.
+
+Ingredients: ${ingredients.join(', ')}
+
+Provide:
+1. "wasteSavings": Practical tips to use them up.
+2. "storageGuide": How to store them to extend shelf life.
+3. "leftoverRecipes": Quick snack/meal ideas using these ingredients.
+
+Return JSON:
+{
+  "wasteSavings": [
+    {
+      "title": "string",
+      "description": "string",
+      "wastePercentage": "string (e.g. 30%)",
+      "ingredients": ["string"],
+      "tips": ["string"]
+    }
+  ],
+  "suggestions": [
+     {
+      "title": "string",
+      "description": "string",
+      "wastePercentage": "string (e.g. 30%)",
+      "ingredients": ["string"],
+      "tips": ["string"]
+    }
+  ]
+}
+
+Ensure the root key "suggestions" is present as the frontend expects it.
+Return ONLY valid JSON.`;
+  }
 };
 
 // Cuisine Converter Prompt
@@ -299,7 +336,7 @@ Return JSON:
   "convertedRecipe": {
     "title": "string",
     "ingredients": [{"name": "string", "quantity": number, "unit": "string"}],
-    "steps": ["string"],
+    "steps": ["string (Detailed step-by-step instructions. Include specific techniques.)"],
     "flavorProfile": "string",
     "keyChanges": ["string"]
   }

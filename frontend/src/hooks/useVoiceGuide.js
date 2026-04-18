@@ -5,7 +5,8 @@ export const useVoiceGuide = () => {
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
 
-  const speak = (text, rate = 1) => {
+  const speak = (text, rate = 1, onSpeechEnd = null, language = 'en') => {
+    console.log('🎙️ useVoiceGuide.speak() called with language:', language);
     if ('speechSynthesis' in window) {
       // Cancel any ongoing speech
       window.speechSynthesis.cancel();
@@ -14,18 +15,29 @@ export const useVoiceGuide = () => {
       utterance.rate = rate;
       utterance.pitch = 1;
       utterance.volume = 1;
+      
+      // Set language code
+      const languageCode = language === 'te' ? 'te-IN' : 'en-US';
+      console.log('🎙️ Setting utterance.lang to:', languageCode);
+      utterance.lang = languageCode;
 
       utterance.onstart = () => setIsSpeaking(true);
-      utterance.onend = () => setIsSpeaking(false);
+      utterance.onend = () => {
+        console.log('🎙️ Speech ended');
+        setIsSpeaking(false);
+        if (onSpeechEnd) {
+          console.log('🎙️ Calling onSpeechEnd callback');
+          onSpeechEnd();
+        }
+      };
       utterance.onerror = (event) => {
         console.error('Speech error:', event);
-        toast.error('Voice guidance unavailable');
         setIsSpeaking(false);
       };
 
       window.speechSynthesis.speak(utterance);
     } else {
-      toast.error('Voice guidance not supported in your browser');
+      console.warn('Voice guidance not supported');
     }
   };
 

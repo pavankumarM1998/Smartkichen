@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { recipeService } from '../services/apiService';
 import RecipeCard from '../components/RecipeCard';
+import StepByStepInstructions from '../components/StepByStepInstructions';
 import toast from 'react-hot-toast';
 
 const RecipeResultsPage = () => {
@@ -165,6 +166,11 @@ const RecipeResultsPage = () => {
                   </ol>
                 </div>
 
+                {/* Step-by-Step Lesson Mode */}
+                {selectedRecipe.steps && selectedRecipe.steps.length > 0 && (
+                  <StepByStepInstructions steps={selectedRecipe.steps} language={recipeLanguage} />
+                )}
+
                 {/* Nutrition */}
                 {selectedRecipe.nutritionInfo && (
                   <div className="card">
@@ -197,8 +203,25 @@ const RecipeResultsPage = () => {
                 {/* Waste Savings */}
                 {selectedRecipe.wasteSavings && (
                   <div className="card bg-blue-50 border-l-4 border-blue-500">
-                    <h3 className="font-bold text-lg mb-2">♻️ Waste Reduction Tips</h3>
-                    <p className="text-gray-700">{selectedRecipe.wasteSavings}</p>
+                    <h3 className="font-bold text-lg mb-2 flex items-center gap-2">
+                      ♻️ Waste Reduction Tips
+                      <span className="text-xs font-normal text-blue-700 bg-blue-200 px-2 py-0.5 rounded-full">Interactive</span>
+                    </h3>
+                    <div className="space-y-2">
+                      {(Array.isArray(selectedRecipe.wasteSavings)
+                        ? selectedRecipe.wasteSavings
+                        : typeof selectedRecipe.wasteSavings === 'string'
+                          ? selectedRecipe.wasteSavings.split(/\n|(?=\d+\.)/)
+                          : [selectedRecipe.wasteSavings?.toString() || '']
+                      )
+                        .filter(tip => tip && tip.toString().replace(/^\d+[\.\)]\s*/, '').trim().length > 3)
+                        .map((tip, idx) => (
+                          <label key={idx} className="flex items-start gap-3 p-2 hover:bg-white/50 rounded cursor-pointer transition-colors">
+                            <input type="checkbox" className="mt-1 w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500" />
+                            <span className="text-gray-700 text-sm leading-relaxed select-none">{tip.toString().replace(/^\d+[\.\)]\s*/, '').trim()}</span>
+                          </label>
+                        ))}
+                    </div>
                   </div>
                 )}
               </div>

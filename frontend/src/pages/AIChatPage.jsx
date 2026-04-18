@@ -44,7 +44,8 @@ export default function AIChatPage() {
       const botMessage = {
         id: messages.length + 2,
         type: 'bot',
-        content: response.data.reply
+        // Backend returns: { data: { message: "content" } }
+        content: response.data.data?.message || response.data.message || response.data.reply || "I didn't get that."
       };
       setMessages(prev => [...prev, botMessage]);
     } catch (error) {
@@ -98,11 +99,10 @@ export default function AIChatPage() {
                 className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`max-w-xs lg:max-w-md xl:max-w-lg px-4 py-3 rounded-lg ${
-                    message.type === 'user'
+                  className={`max-w-xs lg:max-w-md xl:max-w-lg px-4 py-3 rounded-lg ${message.type === 'user'
                       ? 'bg-purple-600 text-white rounded-br-none'
                       : 'bg-gray-100 text-gray-900 rounded-bl-none'
-                  }`}
+                    }`}
                 >
                   <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                 </div>

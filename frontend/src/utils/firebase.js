@@ -1,13 +1,15 @@
-import { initializeApp } from 'firebase/app';
-import { 
-  getAuth, 
-  createUserWithEmailAndPassword, 
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
   setPersistence,
+  updateProfile,
   browserLocalPersistence
 } from 'firebase/auth';
+
+import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
@@ -39,9 +41,9 @@ export const firebaseAuth = {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-      
-      // Update user profile
-      await user.updateProfile({
+
+      // Update user profile using modular SDK
+      await updateProfile(user, {
         displayName: name,
       });
 
