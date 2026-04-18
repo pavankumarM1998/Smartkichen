@@ -346,40 +346,57 @@ Return ONLY valid JSON.`;
 };
 
 // Meal Plan Generator Prompt
-const mealPlanPrompt = (userPreferences, restrictions, servings = 4, pantryItems = [], searchQuery = '') => {
-  return `Generate a week-long meal plan respecting user preferences and prioritizing available ingredients.
+const mealPlanPrompt = (userPreferences, restrictions, servings = 4, pantryItems = [], planType = 'Healthy') => {
+  // Random seed so AI gives variety on each call
+  const seed = Math.floor(Math.random() * 10000);
 
-User Profile: ${JSON.stringify(userPreferences)}
-Dietary Restrictions: ${restrictions.join(', ')}
+  const planRules = {
+    Healthy:     'Balanced macros, whole foods, minimal processed ingredients, plenty of vegetables and fruit.',
+    Diet:        'Low calorie (under 1800 kcal/day), high fiber, low fat, portion controlled, light meals.',
+    HighProtein: 'Each meal must include a protein source (chicken, eggs, lentils, fish, tofu). Target 40%+ calories from protein.',
+    Keto:        'Strictly low carb (under 20g net carbs/day), high fat, moderate protein. No bread, rice, pasta, sugar.',
+    Diabetic:    'Low glycemic index foods only. No refined sugar, white rice, or white bread. High fiber, controlled portions.',
+    Vegetarian:  'No meat or fish. Include eggs and dairy. Rich in legumes, vegetables, whole grains.',
+    Vegan:       'No animal products whatsoever. Use tofu, tempeh, legumes, nuts, seeds. Ensure B12 and iron-rich foods.',
+    Custom:      'Diverse mix of different cuisines (Indian, Italian, Asian, Mediterranean). Use variety across days.',
+  };
+
+  const ruleForPlan = planRules[planType] || planRules['Healthy'];
+
+  return `You are a professional dietitian and chef. Generate a UNIQUE 7-day meal plan. 
+
+PLAN TYPE: ${planType}
+PLAN RULES: ${ruleForPlan}
 Servings per meal: ${servings}
-Available Pantry Ingredients: ${pantryItems.length > 0 ? pantryItems.join(', ') : 'None listed'}
-User Search/Focus: ${searchQuery || 'General healthy meal plan'}
+Dietary Restrictions: ${restrictions.length > 0 ? restrictions.join(', ') : 'None'}
+Available Pantry Ingredients (prioritize these): ${pantryItems.length > 0 ? pantryItems.join(', ') : 'None listed'}
+Cuisine Preferences: ${userPreferences.cuisinePreferences?.join(', ') || 'Any'}
+Randomization Seed (use this to ensure unique output each call): ${seed}
 
-Requirements:
-- PRIORITIZE using the "Available Pantry Ingredients" to reduce food waste.
-- If "User Search/Focus" is provided (e.g., "high protein", "italian week"), strictly follow it.
-- Balanced nutrition
-- Variety across days
-- Budget-friendly (minimize buying new items if pantry items work)
-- Seasonal ingredients
-- Mix of cuisines
+MANDATORY REQUIREMENTS:
+1. Strictly follow the "${planType}" plan rules above — this is the MOST important requirement.
+2. NEVER repeat the same meal twice in the week — every meal must be different.
+3. Vary the cuisines and ingredients across days.
+4. Use pantry items when suitable to reduce waste.
+5. Each day must have all 4 meals: breakfast, lunch, dinner, snack.
 
-Return JSON:
+Return ONLY this JSON structure, no markdown:
 {
   "mealPlan": [
     {
-      "day": "string",
-      "breakfast": {"recipe": "string", "estimatedCost": number},
-      "lunch": {"recipe": "string", "estimatedCost": number},
-      "dinner": {"recipe": "string", "estimatedCost": number},
-      "snack": {"recipe": "string", "estimatedCost": number}
+      "day": "0",
+      "breakfast": {"recipe": "string (specific dish name)", "estimatedCost": number, "ingredients": ["string"]},
+      "lunch":     {"recipe": "string (specific dish name)", "estimatedCost": number, "ingredients": ["string"]},
+      "dinner":    {"recipe": "string (specific dish name)", "estimatedCost": number, "ingredients": ["string"]},
+      "snack":     {"recipe": "string (specific dish name)", "estimatedCost": number, "ingredients": ["string"]}
     }
   ],
   "shoppingList": [{"item": "string", "quantity": number, "unit": "string"}],
   "totalWeeklyCost": number,
-  "nutritionSummary": {}
+  "nutritionSummary": {"avgDailyCalories": number, "protein": "string", "carbs": "string", "fat": "string"}
 }
 
+day field values: "0" = Monday, "1" = Tuesday, ... "6" = Sunday. Include all 7 days (0–6).
 Return ONLY valid JSON.`;
 };
 

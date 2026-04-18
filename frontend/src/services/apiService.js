@@ -147,10 +147,11 @@ export const mealPlanService = {
   getWeeklyMealPlan: (weekStartDate) =>
     api.get(`/meal-plan/weekly/${weekStartDate}`),
 
-  generateMealPlan: (weekStartDate, servings) =>
+  generateMealPlan: (weekStartDate, servings, planType) =>
     api.post('/meal-plan/generate', {
       weekStartDate,
       servings,
+      planType,
     }),
 
   addMealToplan: (mealPlanId, dayOfWeek, mealType, recipeTitle, estimatedCost) =>

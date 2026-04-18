@@ -38,10 +38,10 @@ const getWeeklyMealPlan = async (req, res, next) => {
 const generateMealPlan = async (req, res, next) => {
   try {
     console.log('[MealPlan] Generating plan request received');
-    const { weekStartDate, servings = 4 } = req.body;
+    const { weekStartDate, servings = 4, planType = 'Healthy' } = req.body;
 
     if (!weekStartDate) {
-      console.error('[MealPlan] Missing weekStartDat');
+      console.error('[MealPlan] Missing weekStartDate');
       return apiResponse(res, 400, false, 'Week start date is required');
     }
 
@@ -49,11 +49,7 @@ const generateMealPlan = async (req, res, next) => {
     console.log('[MealPlan] Fetching preferences for user:', req.userId);
     const preferencesDocs = await db.getDocs(db.paths.preferences, { userId: req.userId });
     const preferences = preferencesDocs.length > 0 ? preferencesDocs[0] : null;
-    console.log('[MealPlan] Preferences found:', preferences ? 'Yes' : 'No', preferences);
-
-    // Get taste profile
-    // Note: Assuming taste profile is part of preferences or a separate collection
-    // For now, defaulting to basic values if not found
+    console.log('[MealPlan] Preferences found:', preferences ? 'Yes' : 'No');
 
     // Get Pantry Items (to prioritize existing ingredients)
     const pantryDocs = await db.getDocs(db.paths.pantryItems, { userId: req.userId });
@@ -61,18 +57,18 @@ const generateMealPlan = async (req, res, next) => {
     console.log('[MealPlan] Pantry items found:', pantryItems.length);
 
     // Generate meal plan using AI
-    console.log('[MealPlan] Calling AI Service...');
+    console.log('[MealPlan] Calling AI Service with planType:', planType);
     let generatedPlan;
     try {
       generatedPlan = await aiService.generateMealPlan(
         {
-          healthMode: preferences?.healthMode || 'Normal',
+          healthMode: planType,
           cuisinePreferences: preferences?.cuisinePreferences || ['Any'],
         },
         preferences?.dietaryRestrictions || [],
         servings,
-        pantryItems, // Pass pantry items
-        req.body.searchQuery || '' // Pass search query/focus
+        pantryItems,
+        planType // Pass planType as searchQuery so prompt uses it
       );
     } catch (aiError) {
       console.warn('[MealPlan] AI generation failed, using fallback:', aiError.message);
