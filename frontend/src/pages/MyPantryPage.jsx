@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { FaPlus, FaTrash, FaTimes, FaUtensils, FaCheckSquare, FaSquare } from 'react-icons/fa';
-import { pantryService } from '../services/apiService';
+import apiService, { pantryService } from '../services/apiService';
 
 const MyPantryPage = () => {
     const { t } = useTranslation();
@@ -75,21 +75,11 @@ const MyPantryPage = () => {
         }
 
         try {
-            const token = localStorage.getItem('token');
-            const response = await fetch('/api/pantry/add', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    ingredientName: searchQuery.trim(),
-                    quantity: 1,
-                    unit: 'piece'
-                })
+            await pantryService.addPantryItem({
+                ingredientName: searchQuery.trim(),
+                quantity: 1,
+                unit: 'piece'
             });
-
-            if (!response.ok) throw new Error('Failed to add ingredient');
 
             setSearchQuery('');
             setSuccess(t('myPantry.ingredientAdded') || 'Ingredient added to pantry!');
@@ -175,29 +165,20 @@ const MyPantryPage = () => {
                 .map(item => item.ingredientName || item.name);
 
             // Call recipe generation API directly with selected ingredients
-            const token = localStorage.getItem('token');
-            const response = await fetch('/api/recipes/generate', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
+            const response = await apiService.post('/recipes/generate', {
+                ingredients: selectedIngredients,
+                healthMode,
+                servings,
+                language: localStorage.getItem('language') || 'en'
+            });
+
+            // Navigate to recipe results page with the already generated recipe
+            navigate('/recipe-results', {
+                state: {
+                    recipe: response.data.data, // Backend returns data in .data field
                     ingredients: selectedIngredients,
                     healthMode,
                     servings,
-                    language: localStorage.getItem('language') || 'en'
-                })
-            });
-
-            if (!response.ok) throw new Error('Failed to generate recipe');
-
-            const data = await response.json();
-
-            // Navigate to recipe results page
-            navigate('/recipe-results', {
-                state: {
-                    recipe: data.recipe,
                     fromPantry: true
                 }
             });
@@ -216,12 +197,17 @@ const MyPantryPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 py-8">
-            <div className="max-w-4xl mx-auto px-4">
-                {/* Header */}
-                <h1 className="text-4xl font-bold text-green-600 mb-8">
-                    {t('myPantry.title') || '🍳 Cook from Pantry'}
-                </h1>
+        <div className="animate-page-enter space-y-6">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div className="text-left">
+                    <h1 className="text-4xl font-black text-[#111827] leading-tight mb-1 tracking-tighter">
+                        🍳 Cook from <span className="text-[#246A48]">Pantry</span>
+                    </h1>
+                    <p className="text-[#3a5c51] font-black uppercase tracking-[0.6em] text-[12px] opacity-50 mt-1">
+                        Select ingredients and let AI suggest a meal.
+                    </p>
+                </div>
+            </div>
 
                 {/* Error/Success Messages */}
                 {error && (
@@ -242,14 +228,15 @@ const MyPantryPage = () => {
                 )}
 
                 {/* Add Ingredient Section */}
-                <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-                    <h2 className="text-xl font-semibold mb-4">
+                <div className="card shadow-lg p-4 bg-white/80">
+                    <h2 className="text-sm font-black text-[#111827] mb-3 flex items-center gap-2">
+                         <span className="p-1.5 bg-emerald-50 text-[#246A48] rounded-lg text-xs">✏️</span>
                         {t('myPantry.addIngredients') || 'Add Ingredients'}
                     </h2>
                     <div className="flex gap-3">
                         <input
                             type="text"
-                            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                            className="input-field flex-1"
                             placeholder={t('myPantry.typeIngredientName') || 'Type ingredient name (e.g., Rice, Eggs, Chicken)'}
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
@@ -257,49 +244,48 @@ const MyPantryPage = () => {
                         />
                         <button
                             onClick={handleAddIngredient}
-                            className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2 transition-colors"
+                            className="btn-primary whitespace-nowrap px-6 py-2 text-[10px]"
                         >
-                            <FaPlus />
+                            <FaPlus className="mr-1" />
                             {t('myPantry.add') || 'Add'}
                         </button>
                     </div>
                 </div>
 
                 {/* Pantry Items Section */}
-                <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-                    <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-xl font-semibold">
-                            {t('myPantry.pantryItems') || 'Your Ingredients'} ({pantryItems.length})
+                <div className="card shadow-xl overflow-hidden">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-6 border-b border-slate-100">
+                        <div>
+                            <h2 className="text-xl font-bold text-[#111827]">
+                                {t('myPantry.pantryItems') || 'Your Ingredients'} 
+                                <span className="ml-2 text-sm font-bold text-slate-400">({pantryItems.length})</span>
+                            </h2>
                             {selectedItems.size > 0 && (
-                                <span className="ml-2 text-sm text-green-600">
-                                    ({selectedItems.size} selected)
-                                </span>
+                                <p className="text-xs font-black uppercase tracking-widest text-[#246A48] mt-1">
+                                    {selectedItems.size} selected for cooking
+                                </p>
                             )}
-                        </h2>
-                        <div className="flex gap-2">
-                            {pantryItems.length > 0 && (
-                                <>
-                                    <button
-                                        onClick={selectAll}
-                                        className="px-3 py-1 text-sm border border-green-500 text-green-600 rounded hover:bg-green-50 transition-colors"
-                                    >
-                                        Select All
-                                    </button>
-                                    <button
-                                        onClick={deselectAll}
-                                        className="px-3 py-1 text-sm border border-gray-400 text-gray-600 rounded hover:bg-gray-50 transition-colors"
-                                    >
-                                        Deselect All
-                                    </button>
-                                    <button
-                                        onClick={handleClearPantry}
-                                        className="px-4 py-2 border border-red-500 text-red-500 rounded-lg hover:bg-red-50 flex items-center gap-2 transition-colors"
-                                    >
-                                        <FaTrash />
-                                        {t('myPantry.clearAll') || 'Clear All'}
-                                    </button>
-                                </>
-                            )}
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                             <button
+                                onClick={selectAll}
+                                className="px-3 py-1.5 text-xs font-bold border-2 border-emerald-50 text-[#246A48] rounded-xl hover:bg-emerald-50 transition-all uppercase tracking-tight"
+                            >
+                                Select All
+                            </button>
+                            <button
+                                onClick={deselectAll}
+                                className="px-3 py-1.5 text-xs font-bold border-2 border-slate-50 text-slate-500 rounded-xl hover:bg-slate-50 transition-all uppercase tracking-tight"
+                            >
+                                Deselect All
+                            </button>
+                            <button
+                                onClick={handleClearPantry}
+                                className="px-3 py-1.5 text-xs font-bold border-2 border-red-50 text-red-500 rounded-xl hover:bg-red-50 flex items-center gap-2 transition-all uppercase tracking-tight"
+                            >
+                                <FaTrash />
+                                Clear
+                            </button>
                         </div>
                     </div>
 
@@ -312,25 +298,27 @@ const MyPantryPage = () => {
                             <p>{t('myPantry.pantryEmpty') || 'Your pantry is empty. Add ingredients to get started!'}</p>
                         </div>
                     ) : (
-                        <div className="space-y-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                             {Array.isArray(pantryItems) && pantryItems.map((item) => (
                                 <div
                                     key={item.id}
-                                    className={`flex items-center justify-between p-3 rounded-lg border-2 transition-all cursor-pointer ${selectedItems.has(item.id)
-                                        ? 'bg-green-50 border-green-400'
-                                        : 'bg-gray-50 border-gray-200 hover:border-gray-300'
+                                    className={`flex items-center justify-between p-4 rounded-2xl border-2 transition-all cursor-pointer group ${selectedItems.has(item.id)
+                                        ? 'bg-[#F5F8F6] border-[#246A48]/20 shadow-sm'
+                                        : 'bg-white border-slate-100 hover:border-[#246A48]/10'
                                         }`}
                                     onClick={() => toggleItemSelection(item.id)}
                                 >
-                                    <div className="flex items-center gap-3">
-                                        <div className="text-2xl">
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <div className="flex-shrink-0">
                                             {selectedItems.has(item.id) ? (
-                                                <FaCheckSquare className="text-green-600" />
+                                                <div className="w-5 h-5 rounded-md bg-[#246A48] flex items-center justify-center text-[10px] text-white">
+                                                    ✓
+                                                </div>
                                             ) : (
-                                                <FaSquare className="text-gray-400" />
+                                                <div className="w-5 h-5 rounded-md border-2 border-slate-200" />
                                             )}
                                         </div>
-                                        <span className="font-medium text-lg">
+                                        <span className={`font-bold text-sm truncate ${selectedItems.has(item.id) ? 'text-[#246A48]' : 'text-[#111827]'}`}>
                                             {item.ingredientName || item.name || 'Unknown Item'}
                                         </span>
                                     </div>
@@ -339,9 +327,9 @@ const MyPantryPage = () => {
                                             e.stopPropagation();
                                             handleRemoveIngredient(item.id);
                                         }}
-                                        className="text-red-500 hover:text-red-700 p-2 transition-colors"
+                                        className="text-red-400 hover:text-red-600 p-2 opacity-0 group-hover:opacity-100 transition-opacity"
                                     >
-                                        <FaTrash />
+                                        <FaTrash size={12} />
                                     </button>
                                 </div>
                             ))}
@@ -351,25 +339,33 @@ const MyPantryPage = () => {
 
                 {/* Recipe Generation Section */}
                 {pantryItems.length > 0 && (
-                    <div className="bg-white rounded-lg shadow-md p-6">
-                        <h2 className="text-xl font-semibold mb-4">
-                            {t('myPantry.generateRecipe') || 'Generate Recipe'}
-                        </h2>
+                    <div className="card shadow-2xl border-t-4 border-t-[#246A48] bg-white">
+                        <div className="flex items-center gap-3 mb-6">
+                             <div className="w-10 h-10 rounded-xl bg-emerald-50 text-[#246A48] flex items-center justify-center text-xl shadow-sm">
+                                🥣
+                             </div>
+                             <div>
+                                <h2 className="text-xl font-black text-[#111827]">
+                                    {t('myPantry.generateRecipe') || 'Ready to Cook?'}
+                                </h2>
+                                <p className="text-[10px] font-bold text-[#3a5c51] uppercase tracking-[0.2em] opacity-80">Recipe Configuration</p>
+                             </div>
+                        </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                             {/* Health Mode */}
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    {t('myPantry.healthMode') || 'Health Mode'}
+                                <label className="label">
+                                    {t('myPantry.healthMode') || 'Dietary Goal'}
                                 </label>
                                 <select
                                     value={healthMode}
                                     onChange={(e) => setHealthMode(e.target.value)}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                                    className="input-field"
                                 >
-                                    <option value="Normal">{t('myPantry.normal') || 'Normal'}</option>
+                                    <option value="Normal">{t('myPantry.normal') || 'Balanced'}</option>
                                     <option value="Keto">{t('myPantry.keto') || 'Keto'}</option>
-                                    <option value="Diabetic">{t('myPantry.diabetic') || 'Diabetic'}</option>
+                                    <option value="Diabetic">{t('myPantry.diabetic') || 'Blood Sugar Control'}</option>
                                     <option value="HighProtein">{t('myPantry.highProtein') || 'High Protein'}</option>
                                     <option value="WeightLoss">{t('myPantry.weightLoss') || 'Weight Loss'}</option>
                                 </select>
@@ -377,45 +373,48 @@ const MyPantryPage = () => {
 
                             {/* Servings */}
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    {t('myPantry.servings') || 'Servings'}
+                                <label className="label">
+                                    {t('myPantry.servings') || 'Portion Size'}
                                 </label>
-                                <select
-                                    value={servings}
-                                    onChange={(e) => setServings(Number(e.target.value))}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                                >
-                                    <option value={1}>1 {t('myPantry.person') || 'Person'}</option>
-                                    <option value={2}>2 {t('myPantry.people') || 'People'}</option>
-                                    <option value={4}>4 {t('myPantry.people') || 'People'}</option>
-                                    <option value={6}>6 {t('myPantry.people') || 'People'}</option>
-                                    <option value={8}>8 {t('myPantry.people') || 'People'}</option>
-                                </select>
+                                <div className="relative">
+                                    <select
+                                        value={servings}
+                                        onChange={(e) => setServings(Number(e.target.value))}
+                                        className="input-field appearance-none"
+                                    >
+                                        <option value={1}>1 Person</option>
+                                        <option value={2}>2 People</option>
+                                        <option value={4}>4 People</option>
+                                        <option value={6}>6 People</option>
+                                        <option value={8}>8 People</option>
+                                    </select>
+                                    <span className="absolute right-5 top-1/2 -translate-y-1/2 text-[10px] font-black uppercase text-slate-400 pointer-events-none">People</span>
+                                </div>
                             </div>
                         </div>
 
                         <button
                             onClick={handleGenerateRecipe}
                             disabled={generating || selectedItems.size === 0}
-                            className="w-full px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-lg font-semibold transition-colors"
+                            className="btn-primary w-full py-2.5 text-xs font-bold flex items-center justify-center gap-4 group uppercase tracking-widest"
                         >
                             {generating ? (
                                 <>
-                                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                                    {t('myPantry.generatingRecipe') || 'Generating Recipe...'}
+                                    <div className="w-5 h-5 border-4 border-white/30 border-t-white rounded-full animate-spin" />
+                                    {t('myPantry.generatingRecipe') || 'CRAFTING RECIPE...'}
                                 </>
                             ) : (
                                 <>
-                                    <FaUtensils />
-                                    {t('myPantry.generateFromPantry') || '🍳 Generate Recipe from Selected Ingredients'} ({selectedItems.size})
+                                    <span className="group-hover:rotate-12 transition-transform">🍳</span>
+                                    {t('myPantry.generateFromPantry') || `CREATE MEAL FROM ${selectedItems.size} ITEMS`}
+                                    <span className="group-hover:-rotate-12 transition-transform">🍳</span>
                                 </>
                             )}
                         </button>
                     </div>
                 )}
             </div>
-        </div>
-    );
-};
+        );
+    };
 
 export default MyPantryPage;

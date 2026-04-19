@@ -23,15 +23,8 @@ export const pantryService = {
   getPantryItem: (id) =>
     api.get(`/pantry/${id}`),
 
-  addPantryItem: (ingredientId, quantity, unit, expiryDate, storageLocation, cost) =>
-    api.post('/pantry/add', {
-      ingredientId,
-      quantity,
-      unit,
-      expiryDate,
-      storageLocation,
-      cost,
-    }),
+  addPantryItem: (data) =>
+    api.post('/pantry/add', data),
 
   updatePantryItem: (id, data) =>
     api.put(`/pantry/${id}`, data),
@@ -193,13 +186,8 @@ export const shoppingService = {
   getShoppingList: (id) =>
     api.get(`/shopping/${id}`),
 
-  addItemToList: (listId, ingredientId, quantity, unit, estimatedCost) =>
-    api.post(`/shopping/${listId}/items`, {
-      ingredientId,
-      quantity,
-      unit,
-      estimatedCost,
-    }),
+  addItemToList: (listId, data) =>
+    api.post(`/shopping/${listId}/items`, data),
 
   updateListItem: (listId, itemId, data) =>
     api.put(`/shopping/${listId}/items/${itemId}`, data),
@@ -209,9 +197,11 @@ export const shoppingService = {
 
   markAsPurchased: (listId, itemId) =>
     api.patch(`/shopping/${listId}/items/${itemId}/purchase`),
+
+  deleteShoppingList: (id) =>
+    api.delete(`/shopping/remove-list/${id}`),
 };
 
-// Export default combined API service
 const apiService = {
   // Auth
   ...authService,
@@ -225,17 +215,16 @@ const apiService = {
   generatePantryRecipe: pantryService.generatePantryRecipe,
 
   // Recipes
-  generateRecipes: recipeService.generateRecipes,
-  getRecipes: recipeService.getRecipes,
-  getRecipe: recipeService.getRecipe,
-  getRecipeSubstitutes: recipeService.getRecipeSubstitutes,
+  generateRecipe: recipeService.generateRecipe,
+  getAllRecipes: recipeService.getAllRecipes,
+  getRecipeById: recipeService.getRecipeById,
+  getSubstitutes: recipeService.getSubstitutes,
   scaleRecipe: recipeService.scaleRecipe,
   convertRecipeCuisine: recipeService.convertRecipeCuisine,
   searchRecipes: recipeService.searchRecipes,
 
   // AI
   rateDifficulty: aiService.rateDifficulty,
-  adjustDifficulty: (data) => aiService.rateDifficulty(data),
   getHealthModeRecipes: aiService.getHealthModeRecipes,
   personalizeRecipe: aiService.personalizeRecipe,
   getWasteReductionSuggestions: aiService.getWasteReductionSuggestions,
@@ -246,9 +235,9 @@ const apiService = {
   // Meal Plan
   generateMealPlan: mealPlanService.generateMealPlan,
   getWeeklyMealPlan: mealPlanService.getWeeklyMealPlan,
-  addMealToWeeklyPlan: mealPlanService.addMealToWeeklyPlan,
+  addMealToplan: mealPlanService.addMealToplan,
   removeMealFromPlan: mealPlanService.removeMealFromPlan,
-  getMealPlanShoppingList: mealPlanService.getMealPlanShoppingList,
+  getShoppingListForPlan: mealPlanService.getShoppingListForPlan,
 
   // Preferences
   getPreferences: preferenceService.getPreferences,
@@ -264,6 +253,13 @@ const apiService = {
   updateListItem: shoppingService.updateListItem,
   removeListItem: shoppingService.removeListItem,
   markAsPurchased: shoppingService.markAsPurchased,
+
+  // Base methods
+  get: api.get,
+  post: api.post,
+  put: api.put,
+  delete: api.delete,
+  patch: api.patch,
 };
 
 export default apiService;

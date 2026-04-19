@@ -6,7 +6,9 @@ import {
   onAuthStateChanged,
   setPersistence,
   updateProfile,
-  browserLocalPersistence
+  browserLocalPersistence,
+  GoogleAuthProvider,
+  signInWithPopup
 } from 'firebase/auth';
 
 import { initializeApp } from 'firebase/app';
@@ -66,6 +68,27 @@ export const firebaseAuth = {
       // Get ID token
       const token = await user.getIdToken();
 
+      return {
+        token,
+        user: {
+          id: user.uid,
+          email: user.email,
+          name: user.displayName,
+        },
+      };
+    } catch (error) {
+      throw new Error(error.message);
+    }
+  },
+
+  // Login with Google
+  loginWithGoogle: async () => {
+    try {
+      const provider = new GoogleAuthProvider();
+      const userCredential = await signInWithPopup(auth, provider);
+      const user = userCredential.user;
+      
+      const token = await user.getIdToken();
       return {
         token,
         user: {

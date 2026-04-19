@@ -71,15 +71,16 @@ export default function DifficultyRatingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-yellow-50 to-orange-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto">
+    <div className="page-wide animate-page-enter h-full overflow-hidden flex flex-col !py-0">
+      <div className="flex-1 flex flex-col space-y-4 min-h-0">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <Zap className="w-8 h-8 text-orange-600" />
-            <h1 className="text-4xl font-bold text-gray-900">Difficulty Rating</h1>
-          </div>
-          <p className="text-lg text-gray-600">Get accurate difficulty ratings and skill-level adjustments for any recipe</p>
+        <div className="mb-6">
+          <h1 className="text-4xl font-black text-[#111827] leading-tight mb-1 tracking-tighter">
+            Difficulty <span className="text-[#246A48]">Rating</span> ⚡
+          </h1>
+          <p className="text-[#3a5c51] font-bold uppercase tracking-[0.4em] text-[11px] opacity-60">
+            Get accurate difficulty ratings and skill-level adjustments for any recipe
+          </p>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6">
@@ -93,12 +94,12 @@ export default function DifficultyRatingPage() {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Recipe</label>
+                  <label className="label py-1">Recipe Content</label>
                   <textarea
                     value={recipe}
                     onChange={(e) => setRecipe(e.target.value)}
                     placeholder="Paste your recipe or describe the dish..."
-                    className="w-full h-32 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"
+                    className="w-full h-24 p-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none text-sm"
                   />
                 </div>
 
@@ -114,7 +115,7 @@ export default function DifficultyRatingPage() {
           </div>
 
           {/* Rating Result */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 overflow-y-auto pr-1 scrollbar-premium h-full min-h-0">
             {ratingResult ? (
               <div className="space-y-4">
                 {/* Difficulty Level */}
@@ -242,24 +243,39 @@ export default function DifficultyRatingPage() {
           </div>
         )}
 
-        {/* Skills Guide */}
-        <div className="mt-8 bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-xl font-semibold mb-4">Difficulty Levels Explained</h3>
-          <div className="grid md:grid-cols-2 gap-4">
-            {difficultyLevels.map((level, idx) => (
-              <div key={level} className={`p-4 rounded-lg border-2 ${getDifficultyColor(level)}`}>
-                <p className="font-semibold mb-2 flex items-center gap-2">
-                  <span className="text-lg">{'⭐'.repeat(idx + 1)}</span>
-                  {level}
-                </p>
-                <p className="text-sm">
-                  {level === 'Beginner' && 'Simple recipes with basic techniques, minimal prep.'}
-                  {level === 'Intermediate' && 'Recipes with some techniques, moderate prep and timing.'}
-                  {level === 'Advanced' && 'Complex techniques, precise timing, multiple steps.'}
-                  {level === 'Expert' && 'Advanced skills, precise techniques, restaurant-quality results.'}
-                </p>
-              </div>
-            ))}
+        {/* Skills Guide (Redesigned) */}
+        <div className="mt-auto bg-white/40 backdrop-blur-md rounded-2xl p-4 border border-white/60 shadow-inner shrink-0">
+          <div className="grid md:grid-cols-4 gap-4">
+            {difficultyLevels.map((level, idx) => {
+              const colors = {
+                Beginner: 'from-emerald-500/10 to-emerald-500/5 text-emerald-700 border-emerald-200/50',
+                Intermediate: 'from-amber-500/10 to-amber-500/5 text-amber-700 border-amber-200/50',
+                Advanced: 'from-orange-500/10 to-orange-500/5 text-orange-700 border-orange-200/50',
+                Expert: 'from-rose-500/10 to-rose-500/5 text-rose-700 border-rose-200/50'
+              };
+              const icons = [<Clock key="1" className="w-4 h-4" />, <Users key="2" className="w-4 h-4" />, <Zap key="3" className="w-4 h-4" />, <TrendingDown key="4" className="w-4 h-4" />];
+
+              return (
+                <div 
+                  key={level} 
+                  className={`relative overflow-hidden p-4 rounded-xl border-2 bg-gradient-to-br transition-all hover:scale-[1.02] hover:shadow-lg ${colors[level]}`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-black text-[13px] uppercase tracking-[0.2em]">{level}</span>
+                    <div className="opacity-40">{icons[idx]}</div>
+                  </div>
+                  <p className="text-[11px] font-bold opacity-70 leading-relaxed">
+                    {level === 'Beginner' && 'Perfect for fast, high-quality meals with minimal equipment.'}
+                    {level === 'Intermediate' && 'Standard culinary techniques with moderate preparation depth.'}
+                    {level === 'Advanced' && 'Multi-stage processes requiring precision and focus.'}
+                    {level === 'Expert' && 'Comprehensive professional methods and elite presentation.'}
+                  </p>
+                  <div className="absolute -bottom-2 -right-2 text-4xl font-black opacity-[0.05] italic">
+                    {idx + 1}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>

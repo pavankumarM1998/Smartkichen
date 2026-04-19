@@ -74,6 +74,25 @@ export const useAuth = () => {
     }
   };
 
+  const loginWithGoogle = async () => {
+    try {
+      setLoading(true);
+      const result = await firebaseAuth.loginWithGoogle();
+      setUser(result.user);
+      setIsAuthenticated(true);
+      localStorage.setItem('token', result.token);
+      localStorage.setItem('user', JSON.stringify(result.user));
+
+      return { success: true, user: result.user };
+    } catch (err) {
+      const errorMessage = err.message || 'Google Login failed';
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const logout = async () => {
     try {
       setLoading(true);
@@ -95,6 +114,7 @@ export const useAuth = () => {
     isAuthenticated,
     register,
     login,
+    loginWithGoogle,
     logout,
   };
 };

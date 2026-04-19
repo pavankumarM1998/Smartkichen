@@ -16,10 +16,14 @@ export default function SeasonalSuggestionsPage() {
   }, []);
 
   useEffect(() => {
-    if (selectedSeason) {
-      setFilteredSuggestions(suggestions.filter(s => s.season === selectedSeason));
+    if (Array.isArray(suggestions)) {
+      if (selectedSeason) {
+        setFilteredSuggestions(suggestions.filter(s => s?.season === selectedSeason));
+      } else {
+        setFilteredSuggestions(suggestions);
+      }
     } else {
-      setFilteredSuggestions(suggestions);
+      setFilteredSuggestions([]);
     }
   }, [selectedSeason, suggestions]);
 
@@ -27,10 +31,14 @@ export default function SeasonalSuggestionsPage() {
     setLoading(true);
     try {
       const response = await apiService.getSeasonalSuggestions();
-      setSuggestions(response.data.suggestions);
+      // Ensure we always have an array even if data is missing
+      const data = response?.data?.suggestions || [];
+      setSuggestions(Array.isArray(data) ? data : []);
       toast.success('Seasonal suggestions loaded!');
     } catch (error) {
+      console.error('Seasonal Suggestions Error:', error);
       toast.error('Failed to load seasonal suggestions');
+      setSuggestions([]);
     } finally {
       setLoading(false);
     }
@@ -67,25 +75,25 @@ export default function SeasonalSuggestionsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-50 to-green-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <Calendar className="w-8 h-8 text-teal-600" />
-            <h1 className="text-4xl font-bold text-gray-900">Seasonal Suggestions</h1>
+    <div className="page-wide animate-page-enter h-full overflow-hidden flex flex-col !py-0 bg-[#FDFCFB]">
+      <div className="flex-1 flex flex-col space-y-4 min-h-0">
+        {/* Header (Premium) */}
+        <div className="mb-6">
+          <div className="flex items-center gap-3">
+            <span className="p-2 bg-[#246A48]/10 rounded-xl text-[#246A48]"><Calendar className="w-4 h-4" /></span>
+            <h1 className="text-4xl font-black text-[#111827] leading-tight mb-1 tracking-tighter">Seasonal <span className="text-[#246A48]">Ideas</span></h1>
           </div>
-          <p className="text-lg text-gray-600">Discover fresh, seasonal recipes and ingredients for every time of year</p>
+          <p className="text-[#3a5c51] font-bold uppercase tracking-[0.4em] text-[11px] opacity-60">Fresh ingredients & culinary inspirations for every season</p>
         </div>
 
         {/* Season Filter */}
-        <div className="mb-8 flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-2 mb-2 shrink-0">
           <button
             onClick={() => setSelectedSeason('')}
-            className={`px-4 py-2 rounded-lg font-semibold transition ${
+            className={`px-4 py-2 rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all shadow-sm ${
               selectedSeason === ''
-                ? 'bg-teal-600 text-white'
-                : 'bg-white text-gray-700 border border-gray-300 hover:border-teal-500'
+                ? 'btn-primary'
+                : 'bg-white text-[#5a7c6f] border border-[#e5e7eb] hover:border-[#3e6b41]'
             }`}
           >
             All Seasons
@@ -94,10 +102,10 @@ export default function SeasonalSuggestionsPage() {
             <button
               key={season}
               onClick={() => setSelectedSeason(season)}
-              className={`px-4 py-2 rounded-lg font-semibold transition flex items-center gap-2 ${
+              className={`px-4 py-2 rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all shadow-sm flex items-center gap-2 ${
                 selectedSeason === season
                   ? `bg-gradient-to-r ${getSeasonColor(season)} text-white`
-                  : 'bg-white text-gray-700 border border-gray-300 hover:border-teal-500'
+                  : 'bg-white text-[#5a7c6f] border border-[#e5e7eb] hover:border-[#3e6b41]'
               }`}
             >
               <span>{getSeasonEmoji(season)}</span>
@@ -106,19 +114,20 @@ export default function SeasonalSuggestionsPage() {
           ))}
         </div>
 
+        <div className="flex-1 overflow-y-auto pr-1 scrollbar-premium min-h-0">
         {loading ? (
           <div className="text-center py-12">
             <div className="inline-block">
-              <div className="w-12 h-12 border-4 border-teal-200 border-t-teal-600 rounded-full animate-spin"></div>
-              <p className="mt-4 text-gray-600">Loading seasonal suggestions...</p>
+              <div className="w-12 h-12 border-4 border-[#3e6b41]/20 border-t-[#3e6b41] rounded-full animate-spin"></div>
+              <p className="mt-4 text-[#5a7c6f] text-xs font-black uppercase tracking-tight">Curating seasonal inspirations...</p>
             </div>
           </div>
-        ) : filteredSuggestions.length > 0 ? (
-          <div className="space-y-6">
+        ) : (filteredSuggestions?.length ?? 0) > 0 ? (
+          <div className="space-y-4">
             {/* Ingredients Section */}
             <section>
-              <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <Leaf className="w-6 h-6 text-green-600" />
+              <h2 className="text-lg font-black text-gray-900 mb-3 flex items-center gap-2 tracking-tight">
+                <Leaf className="w-4 h-4 text-green-600" />
                 Seasonal Ingredients
               </h2>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -142,8 +151,8 @@ export default function SeasonalSuggestionsPage() {
 
             {/* Recipes Section */}
             <section>
-              <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <Lightbulb className="w-6 h-6 text-orange-600" />
+              <h2 className="text-lg font-black text-gray-900 mb-3 flex items-center gap-2 tracking-tight">
+                <Lightbulb className="w-4 h-4 text-orange-600" />
                 Seasonal Recipes
               </h2>
               <div className="grid lg:grid-cols-2 gap-4">
@@ -200,8 +209,8 @@ export default function SeasonalSuggestionsPage() {
 
             {/* Tips Section */}
             <section>
-              <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <Cloud className="w-6 h-6 text-blue-600" />
+              <h2 className="text-lg font-black text-gray-900 mb-3 flex items-center gap-2 tracking-tight">
+                <Cloud className="w-4 h-4 text-blue-600" />
                 Seasonal Tips
               </h2>
               <div className="grid md:grid-cols-2 gap-4">
@@ -226,20 +235,23 @@ export default function SeasonalSuggestionsPage() {
           </div>
         )}
 
-        {/* Season Calendar */}
-        <div className="mt-12 bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-xl font-semibold mb-4">Seasonal Calendar</h3>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+        </div>
+
+        {/* Calendar Footer */}
+        <div className="mt-auto pt-2 shrink-0">
+          <div className="grid grid-cols-4 gap-2">
             {[
-              { season: 'Spring', months: 'Mar - May', icon: '🌸', color: 'from-green-100 to-blue-100' },
-              { season: 'Summer', months: 'Jun - Aug', icon: '☀️', color: 'from-yellow-100 to-orange-100' },
-              { season: 'Fall', months: 'Sep - Nov', icon: '🍂', color: 'from-orange-100 to-red-100' },
-              { season: 'Winter', months: 'Dec - Feb', icon: '❄️', color: 'from-blue-100 to-cyan-100' }
+              { season: 'Spring', months: 'Mar-May', icon: '🌸', color: 'from-green-50 to-blue-50 border-green-100' },
+              { season: 'Summer', months: 'Jun-Aug', icon: '☀️', color: 'from-yellow-50 to-orange-50 border-yellow-100' },
+              { season: 'Fall', months: 'Sep-Nov', icon: '🍂', color: 'from-orange-50 to-red-50 border-orange-100' },
+              { season: 'Winter', months: 'Dec-Feb', icon: '❄️', color: 'from-blue-50 to-cyan-50 border-cyan-100' }
             ].map(s => (
-              <div key={s.season} className={`bg-gradient-to-br ${s.color} rounded-lg p-4 text-center`}>
-                <p className="text-3xl mb-2">{s.icon}</p>
-                <p className="font-semibold text-gray-900">{s.season}</p>
-                <p className="text-sm text-gray-600">{s.months}</p>
+              <div key={s.season} className={`bg-gradient-to-br ${s.color} rounded-xl p-2 border text-center flex items-center justify-center gap-3`}>
+                <span className="text-xl">{s.icon}</span>
+                <div className="text-left">
+                  <p className="font-black text-[9px] uppercase tracking-widest text-gray-900 leading-none">{s.season}</p>
+                  <p className="text-[8px] font-bold text-gray-500">{s.months}</p>
+                </div>
               </div>
             ))}
           </div>

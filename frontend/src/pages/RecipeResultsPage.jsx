@@ -14,27 +14,28 @@ const RecipeResultsPage = () => {
   const [selectedRecipe, setSelectedRecipe] = useState(null);
   const [recipeLanguage, setRecipeLanguage] = useState('en'); // Language for recipes only
 
-  const { ingredients, healthMode, servings } = location.state || {
-    ingredients: [],
-    healthMode: 'Normal',
-    servings: 4,
-  };
+  const { ingredients = [], healthMode = 'Normal', servings = 4, recipe: stateRecipe } = location.state || {};
 
   useEffect(() => {
     generateRecipes();
   }, [recipeLanguage]); // Regenerate when language changes
 
   const generateRecipes = async () => {
+    // If we already have a recipe passed in state, use it (skip generation)
+    if (stateRecipe && !recipes.length) {
+      setRecipes([stateRecipe]);
+      setSelectedRecipe(stateRecipe);
+      return;
+    }
+
     setLoading(true);
     console.log('🔍 Generating recipe with language:', recipeLanguage);
     try {
       console.log('📤 API Request:', { ingredients, healthMode, servings, language: recipeLanguage });
       const response = await recipeService.generateRecipe(ingredients, healthMode, servings, recipeLanguage);
-      console.log('📥 API Response - Recipe Title:', response.data.data.title);
-      console.log('📥 First Ingredient:', response.data.data.ingredients?.[0]);
-      console.log('📥 First Step:', response.data.data.steps?.[0]?.instruction);
-      setRecipes([response.data.data]);
-      setSelectedRecipe(response.data.data);
+      const data = response.data.data || response.data.recipe;
+      setRecipes([data]);
+      setSelectedRecipe(data);
       toast.success('Recipe generated!');
     } catch (error) {
       toast.error('Failed to generate recipe');
@@ -56,31 +57,36 @@ const RecipeResultsPage = () => {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-      <div className="mb-8">
-        <div className="flex justify-between items-center mb-4">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">🍳 Recipe Results</h1>
-            <p className="text-gray-600">
-              Generated from: <span className="font-semibold">{ingredients.join(', ')}</span>
-            </p>
-            {healthMode !== 'Normal' && (
-              <p className="text-sm text-green-600">✓ Adjusted for {healthMode} diet</p>
-            )}
-          </div>
+    <div className="page-wide animate-page-enter h-full overflow-hidden flex flex-col !py-0">
+      <div className="flex-1 flex flex-col space-y-4 min-h-0">
+        <div className="mb-6">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-4xl font-black text-[#111827] leading-tight mb-1 tracking-tighter">🍳 Recipe <span className="text-[#246A48]">Results</span></h1>
+              <p className="text-[#3a5c51] font-bold uppercase tracking-[0.4em] text-[11px] opacity-60">
+                AI Hand-Crafted meals for your selection
+              </p>
+            </div>
 
-          {/* Language Switcher for Recipes */}
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-600">Recipe Language:</span>
-            <button
-              onClick={() => setRecipeLanguage(recipeLanguage === 'en' ? 'te' : 'en')}
-              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 font-medium transition-colors"
-            >
-              {recipeLanguage === 'en' ? '🇮🇳 తెలుగు' : '🇬🇧 English'}
-            </button>
+            {/* Language Switcher for Recipes */}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setRecipeLanguage(recipeLanguage === 'en' ? 'te' : 'en')}
+                className="px-4 py-2 bg-white border border-[#246A48]/20 text-[#246A48] rounded-xl hover:bg-[#246A48] hover:text-white font-black text-[10px] uppercase tracking-widest transition-all shadow-sm"
+              >
+                {recipeLanguage === 'en' ? 'Translate to Telugu' : 'Translate to English'}
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+
+        <div className="flex-1 overflow-y-auto pr-1 scrollbar-premium min-h-0">
+          <div className="mb-4">
+            <p className="text-xs text-gray-500 uppercase font-black tracking-widest flex items-center gap-2">
+              <span className="p-1 bg-blue-50 text-blue-600 rounded">🔍</span>
+              Sources: {Array.isArray(ingredients) ? ingredients.join(', ') : 'Pantry Collection'}
+            </p>
+          </div>
 
       {recipes.length === 0 ? (
         <div className="card text-center py-12">
@@ -227,8 +233,10 @@ const RecipeResultsPage = () => {
               </div>
             )}
           </div>
+          </div>
+        )}
         </div>
-      )}
+      </div>
     </div>
   );
 };

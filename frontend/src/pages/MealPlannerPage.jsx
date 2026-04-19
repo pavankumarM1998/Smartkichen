@@ -3,23 +3,23 @@ import { mealPlanService } from '../services/apiService';
 import toast from 'react-hot-toast';
 
 const PLAN_TYPES = [
-  { id: 'Healthy',     label: '🥗 Healthy',           desc: 'Balanced, nutritious meals for everyday wellness',       color: 'from-green-500 to-emerald-600' },
-  { id: 'Diet',        label: '⚖️ Diet / Weight Loss', desc: 'Low calorie, high fiber to help you reach your goals',  color: 'from-blue-500 to-cyan-600'    },
-  { id: 'HighProtein', label: '💪 High Protein',       desc: 'Protein-rich meals for muscle building & recovery',     color: 'from-orange-500 to-red-600'   },
-  { id: 'Keto',        label: '🥑 Keto',               desc: 'Low carb, high fat meals for ketogenic lifestyle',      color: 'from-yellow-500 to-amber-600' },
-  { id: 'Diabetic',    label: '🩺 Diabetic Friendly',  desc: 'Low glycemic index meals for blood sugar control',      color: 'from-purple-500 to-violet-600'},
-  { id: 'Vegetarian',  label: '🌿 Vegetarian',         desc: 'Plant-based meals packed with nutrients',               color: 'from-teal-500 to-green-600'   },
-  { id: 'Vegan',       label: '🌱 Vegan',              desc: 'Entirely plant-based, no animal products',              color: 'from-lime-500 to-green-600'   },
-  { id: 'Custom',      label: '✨ Custom / Mixed',      desc: 'Variety of cuisines and meal styles',                   color: 'from-pink-500 to-rose-600'    },
+  { id: 'Healthy',     label: '🥗 Healthy',           desc: 'Balanced, nutritious meals for wellness',       color: 'bg-emerald-50 text-emerald-700 border-emerald-100', icon: '🥗' },
+  { id: 'Diet',        label: '⚖️ Weight Loss',       desc: 'Low calorie, high fiber goals',  color: 'bg-blue-50 text-blue-700 border-blue-100', icon: '⚖️'    },
+  { id: 'HighProtein', label: '💪 High Protein',       desc: 'Muscle building & recovery focus',     color: 'bg-orange-50 text-orange-700 border-orange-100', icon: '💪'   },
+  { id: 'Keto',        label: '🥑 Keto',               desc: 'Low carb, high fat lifestyle',      color: 'bg-amber-50 text-amber-700 border-amber-100', icon: '🥑' },
+  { id: 'Diabetic',    label: '🩺 Diabetic',           desc: 'Blood sugar control meals',      color: 'bg-purple-50 text-purple-700 border-purple-100', icon: '🩺'},
+  { id: 'Vegetarian',  label: '🌿 Vegetarian',         desc: 'Plant-based nutrient packed',               color: 'bg-teal-50 text-teal-700 border-teal-100', icon: '🌿'   },
+  { id: 'Vegan',       label: '🌱 Vegan',              desc: 'Entirely plant-based meals',              color: 'bg-lime-50 text-lime-700 border-lime-100', icon: '🌱'   },
+  { id: 'Custom',      label: '✨ Custom',             desc: 'Variety of cuisine styles',                   color: 'bg-pink-50 text-pink-700 border-pink-100', icon: '✨'    },
 ];
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 const MEAL_COLORS = {
-  breakfast: { bg: 'bg-blue-100',   border: 'border-blue-300',   badge: 'bg-blue-600 text-white',    icon: '🌅' },
-  lunch:     { bg: 'bg-green-100',  border: 'border-green-300',  badge: 'bg-green-600 text-white',   icon: '☀️' },
-  dinner:    { bg: 'bg-orange-100', border: 'border-orange-300', badge: 'bg-orange-500 text-white',  icon: '🌙' },
-  snack:     { bg: 'bg-purple-100', border: 'border-purple-300', badge: 'bg-purple-600 text-white',  icon: '🍎' },
+  breakfast: { bg: 'bg-blue-50/50',   border: 'border-blue-100',   badge: 'bg-blue-100 text-blue-700',    icon: '🌅' },
+  lunch:     { bg: 'bg-emerald-50/50',  border: 'border-emerald-100',  badge: 'bg-emerald-100 text-emerald-700',   icon: '☀️' },
+  dinner:    { bg: 'bg-orange-50/50', border: 'border-orange-100', badge: 'bg-orange-100 text-orange-700', icon: '🌙' },
+  snack:     { bg: 'bg-purple-50/50', border: 'border-purple-100', badge: 'bg-purple-100 text-purple-700', icon: '🍎' },
 };
 
 const MealPlannerPage = () => {
@@ -73,111 +73,117 @@ const MealPlannerPage = () => {
   /* ─── STEP 1: Select Plan Type ─────────────────────────────────────── */
   if (step === 'select') {
     return (
-      <div className="max-w-5xl mx-auto px-4 py-10">
-        <div className="text-center mb-10">
-          <h1 style={{ color: '#111827' }} className="text-4xl font-extrabold mb-3">
-            📅 Weekly Meal Planner
+      <div className="page-wide animate-page-enter h-full overflow-hidden flex flex-col !py-0">
+        <div className="flex-1 flex flex-col space-y-4 min-h-0">
+          <div className="text-left shrink-0">
+          <h1 className="text-4xl font-black text-[#111827] leading-tight mb-1 tracking-tighter">
+            Weekly <span className="text-[#246A48]">Planner</span> 📅
           </h1>
-          <p style={{ color: '#374151' }} className="text-lg font-medium">
-            What kind of meal plan are you looking for?
+          <p className="text-[#3a5c51] font-bold uppercase tracking-[0.4em] text-[11px] opacity-60">
+            Choose a lifestyle goal and let AI handle the nutrition.
           </p>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {PLAN_TYPES.map(type => (
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 overflow-y-auto pr-2 scrollbar-premium flex-1 pb-4">
+          {PLAN_TYPES.map((type, idx) => (
             <button
               key={type.id}
               onClick={() => handleSelectPlan(type)}
-              className={`group relative rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 text-left bg-gradient-to-br ${type.color}`}
+              className="group card-hover p-5 flex flex-col items-start gap-2.5 border-2 border-transparent hover:border-[#246A48]/20 transition-all text-left bg-white/90 shadow-lg"
+              style={{ animationDelay: `${idx * 40}ms` }}
             >
-              <div className="p-5 h-full">
-                <p className="text-white text-xl font-extrabold mb-2 drop-shadow">{type.label}</p>
-                <p className="text-white font-semibold text-sm leading-snug opacity-90">{type.desc}</p>
-                <div className="mt-4 flex justify-end">
-                  <span className="bg-white/25 text-white text-xs font-bold px-3 py-1 rounded-full group-hover:bg-white/40 transition-colors">
-                    Select →
-                  </span>
-                </div>
+              <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-xl shadow-sm ${type.color.split(' ')[0]}`}>
+                {type.icon}
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-base font-black text-[#111827] group-hover:text-[#246A48] transition-colors">{type.label}</h3>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight leading-tight">{type.desc}</p>
+              </div>
+              <div className="mt-4 pt-3 border-t border-slate-50 w-full flex items-center justify-between text-[#246A48] text-[9px] font-black uppercase tracking-widest">
+                <span>Customize Plan</span>
+                <span className="group-hover:translate-x-1 transition-transform text-base">→</span>
               </div>
             </button>
           ))}
+          </div>
         </div>
       </div>
     );
   }
 
-  /* ─── STEP 2: Configure & Generate ────────────────────────────────── */
+  /* ─── STEP 2: Configure ─────────────────────────────────────────────── */
   if (step === 'config') {
     return (
-      <div className="max-w-xl mx-auto px-4 py-12">
-        <button
-          onClick={() => setStep('select')}
-          style={{ color: '#374151' }}
-          className="text-sm font-semibold hover:underline mb-6 inline-flex items-center gap-1"
-        >
-          ← Back to plan types
-        </button>
-
-        {/* Plan banner */}
-        <div className={`bg-gradient-to-br ${planType.color} rounded-2xl p-6 text-white mb-8 shadow-lg`}>
-          <p className="text-3xl font-extrabold drop-shadow">{planType.label}</p>
-          <p className="mt-1 text-white font-semibold opacity-90">{planType.desc}</p>
-        </div>
-
-        {/* Config card */}
-        <div className="bg-white rounded-2xl shadow-md border border-gray-200 p-6 space-y-7">
-          <h2 style={{ color: '#111827' }} className="text-xl font-extrabold">
-            Configure Your Plan
-          </h2>
-
-          <div>
-            <label style={{ color: '#1f2937' }} className="block text-sm font-bold mb-1">
-              Week Starting
-            </label>
-            <input
-              type="date"
-              value={selectedWeek}
-              onChange={(e) => setSelectedWeek(e.target.value)}
-              style={{ color: '#111827' }}
-              className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg font-medium focus:outline-none focus:border-green-500"
-            />
-          </div>
-
-          <div>
-            <label style={{ color: '#1f2937' }} className="block text-sm font-bold mb-2">
-              Servings per Meal
-            </label>
-            <div className="flex items-center gap-5">
-              <button
-                onClick={() => setServings(Math.max(1, servings - 1))}
-                className="w-10 h-10 rounded-full bg-gray-200 text-gray-900 text-xl font-extrabold hover:bg-gray-300 transition flex items-center justify-center"
-              >−</button>
-              <span style={{ color: '#111827' }} className="text-2xl font-extrabold w-8 text-center">{servings}</span>
-              <button
-                onClick={() => setServings(Math.min(10, servings + 1))}
-                className="w-10 h-10 rounded-full bg-gray-200 text-gray-900 text-xl font-extrabold hover:bg-gray-300 transition flex items-center justify-center"
-              >+</button>
-            </div>
-            <p style={{ color: '#4b5563' }} className="text-xs font-medium mt-2">
-              Each meal will be sized for {servings} person{servings > 1 ? 's' : ''}
-            </p>
-          </div>
-
-          <button
-            onClick={generateMealPlan}
-            disabled={loading}
-            className="btn-primary w-full text-base font-bold py-3 disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            {loading ? (
-              <span className="flex items-center justify-center gap-2">
-                <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24" fill="none">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
-                </svg>
-                Generating AI Plan…
-              </span>
-            ) : '✨ Generate My Meal Plan'}
+      <div className="page-wide animate-page-enter h-full overflow-hidden flex flex-col !py-0">
+        <div className="flex-1 flex flex-col items-center justify-center min-h-0 bg-slate-50/50 rounded-[3rem] p-4">
+          <button onClick={resetPlanner} className="mb-4 btn-ghost text-[10px] font-black uppercase tracking-[0.4em] px-0 hover:bg-transparent opacity-40 hover:opacity-100 transition-opacity flex items-center gap-2">
+            ← Back to selection
           </button>
+
+          <div className="w-full max-w-lg card shadow-2xl overflow-hidden p-6 border-t-8 border-[#246A48] bg-white rounded-[2rem]">
+            <div className="flex items-center gap-5 mb-6 pb-5 border-b border-slate-50">
+              <div className={`w-12 h-12 rounded-2xl ${planType.color.split(' ')[0]} flex items-center justify-center text-2xl shadow-lg`}>
+                {planType.icon}
+              </div>
+              <div>
+                <h2 className="text-2xl font-black text-[#111827] tracking-tight leading-none">{planType.label}</h2>
+                <p className="text-[9px] font-black text-[#3a5c51] uppercase tracking-[0.3em] opacity-40 mt-1">Optimization Phase</p>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-1.5 block">Planned Week</label>
+                  <input
+                    type="date"
+                    value={selectedWeek}
+                    onChange={(e) => setSelectedWeek(e.target.value)}
+                    className="w-full bg-slate-50/80 border-0 rounded-xl p-3 font-bold text-xs focus:ring-2 focus:ring-[#246A48]/10 transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-1.5 block">Servings Needed</label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min="1"
+                      max="10"
+                      value={servings}
+                      onChange={(e) => setServings(parseInt(e.target.value))}
+                      className="w-full bg-slate-50/80 border-0 rounded-xl p-3 font-bold text-xs focus:ring-2 focus:ring-[#246A48]/10 transition-all"
+                    />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-black uppercase text-slate-400 pointer-events-none">People</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 bg-emerald-50/30 rounded-2xl border border-[#246A48]/5 border-dashed">
+                <p className="text-[11px] font-bold text-[#3a5c51] text-center italic opacity-60 leading-relaxed italic">
+                  "AI will architect a 21-meal comprehensive schedule perfectly balanced for your <span className="text-[#246A48]">{planType.id}</span> requirements."
+                </p>
+              </div>
+
+              <button
+                onClick={generateMealPlan}
+                disabled={loading}
+                className="btn-primary w-full py-4 text-sm font-black flex items-center justify-center gap-4 group rounded-xl shadow-lg"
+              >
+                {loading ? (
+                  <>
+                    <div className="w-5 h-5 border-4 border-white/30 border-t-white rounded-full animate-spin" />
+                    ANALYZING...
+                  </>
+                ) : (
+                  <>
+                    <span className="group-hover:rotate-12 transition-transform">✨</span>
+                    GENERATE MEAL PLAN
+                    <span className="group-hover:-rotate-12 transition-transform">✨</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -188,87 +194,75 @@ const MealPlannerPage = () => {
   const totalMeals = Object.values(dayMap).reduce((acc, d) => acc + Object.keys(d).length, 0);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-
-      {/* Header */}
-      <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
-        <div>
-          <h1 style={{ color: '#111827' }} className="text-3xl font-extrabold">
-            {planType.label} — Weekly Plan
-          </h1>
-          <p style={{ color: '#374151' }} className="text-sm font-semibold mt-1">
-            {servings} serving{servings > 1 ? 's' : ''} &nbsp;·&nbsp;
-            Week of {new Date(selectedWeek).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-            &nbsp;·&nbsp; {totalMeals} meals planned
-          </p>
-        </div>
-        <div className="flex gap-3">
-          <button
-            onClick={generateMealPlan}
-            disabled={loading}
-            className="btn-primary disabled:opacity-60 font-bold"
-          >
-            {loading ? '⏳ Regenerating…' : '🔄 Regenerate'}
-          </button>
-          <button onClick={resetPlanner} className="btn-secondary font-bold">
-            ← New Plan
-          </button>
-        </div>
-      </div>
-
-      {/* Plan badge */}
-      <div className={`inline-flex items-center gap-2 bg-gradient-to-r ${planType.color} text-white text-sm font-bold px-4 py-1.5 rounded-full mb-6 shadow`}>
-        {planType.label} Plan
-      </div>
-
-      {/* Day grid */}
-      <div className="grid xl:grid-cols-7 md:grid-cols-4 sm:grid-cols-2 grid-cols-1 gap-4">
-        {DAYS.map((day, idx) => {
-          const dayMeals = dayMap[idx] || {};
-          return (
-            <div key={idx} className="bg-white rounded-2xl shadow border border-gray-200 p-4 flex flex-col gap-3">
-
-              {/* Day header */}
-              <h3
-                style={{ color: '#111827' }}
-                className="font-extrabold text-center text-sm border-b border-gray-300 pb-2 tracking-wide"
-              >
-                {day}
-              </h3>
-
-              {['breakfast', 'lunch', 'dinner', 'snack'].map(mealType => {
-                const col = MEAL_COLORS[mealType];
-                const recipe = dayMeals[mealType];
-                return (
-                  <div
-                    key={mealType}
-                    className={`${col.bg} border ${col.border} rounded-xl p-3`}
-                  >
-                    {/* Meal type badge */}
-                    <span className={`inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full ${col.badge} mb-2`}>
-                      {col.icon} {mealType.charAt(0).toUpperCase() + mealType.slice(1)}
-                    </span>
-
-                    {/* Recipe name — always dark */}
-                    <p style={{ color: '#111827' }} className="text-xs font-bold leading-snug">
-                      {recipe || <span style={{ color: '#9ca3af' }} className="italic font-normal">—</span>}
-                    </p>
-                  </div>
-                );
-              })}
+    <div className="page-wide animate-page-enter h-full overflow-hidden flex flex-col !py-0">
+      <div className="flex-1 flex flex-col min-h-0">
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6">
+          <div>
+            <div className="flex items-center gap-3 mb-1">
+               <div className={`w-10 h-10 rounded-xl ${planType.color.split(' ')[0]} flex items-center justify-center text-xl shadow-sm`}>
+                  {planType.icon}
+               </div>
+               <span className="text-[10px] font-black uppercase tracking-widest text-[#246A48] opacity-60">{planType.label} Plan</span>
             </div>
-          );
-        })}
-      </div>
-
-      {/* Empty state */}
-      {Object.keys(dayMap).length === 0 && (
-        <div className="bg-white rounded-2xl shadow border border-gray-200 text-center py-12 mt-4">
-          <p style={{ color: '#374151' }} className="text-lg font-semibold">
-            No meals found. Try regenerating the plan.
-          </p>
+            <h1 className="text-4xl font-black text-[#111827] leading-tight mb-0 tracking-tighter">Your Weekly <span className="text-[#246A48]">Menu</span></h1>
+            <p className="text-[#3a5c51] font-bold uppercase tracking-[0.2em] text-[10px] opacity-40 mt-1">
+              {new Date(selectedWeek).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} — {totalMeals} Custom Meals
+            </p>
+          </div>
+          
+          <div className="flex gap-2">
+            <button onClick={generateMealPlan} disabled={loading} className="px-4 py-2 border-2 border-[#246A48]/10 text-[#246A48] rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-[#246A48] hover:text-white transition-all">
+              Rebuild Plan
+            </button>
+            <button onClick={resetPlanner} className="px-4 py-2 bg-[#246A48] text-white rounded-xl text-[11px] font-black uppercase tracking-widest shadow-lg shadow-[#246A48]/20 transition-all hover:-translate-y-1">
+              New Plan
+            </button>
+          </div>
         </div>
-      )}
+
+        {/* Grid Container - Viewport Locked */}
+        <div className="flex-1 overflow-x-auto pb-4 scrollbar-premium flex gap-4 min-h-0 pr-2">
+          {DAYS.map((day, idx) => {
+            const dayMeals = dayMap[idx] || {};
+            return (
+              <div key={idx} className="flex flex-col gap-3 min-w-[190px] h-full animate-page-enter" style={{ animationDelay: `${idx * 40}ms` }}>
+                <div className="text-center py-2 bg-white/60 backdrop-blur-sm rounded-xl border border-slate-100 shadow-sm shrink-0">
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#3a5c51]">{day}</p>
+                </div>
+
+                <div className="flex-1 overflow-y-auto space-y-2 pr-1 scrollbar-premium">
+                  {['breakfast', 'lunch', 'dinner', 'snack'].map(mealType => {
+                    const col = MEAL_COLORS[mealType];
+                    const recipe = dayMeals[mealType];
+                    return (
+                      <div
+                        key={mealType}
+                        className={`card !p-3.5 border ${col.border} ${col.bg} transition-all hover:shadow-md group cursor-pointer relative overflow-hidden`}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md ${col.badge}`}>
+                            {col.icon} {mealType}
+                          </span>
+                        </div>
+                        <p className="text-[13px] font-bold text-[#111827] leading-tight group-hover:text-[#246A48] transition-colors line-clamp-2">
+                          {recipe || <span className="text-slate-300 font-normal italic">Rest Day</span>}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {Object.keys(dayMap).length === 0 && (
+           <div className="card text-center py-20 bg-white/40 border-dashed border-2 flex-1 flex items-center justify-center">
+              <p className="text-xl font-bold text-slate-400 italic">No meal schedule found. Use the regeneration button to start.</p>
+           </div>
+        )}
+      </div>
     </div>
   );
 };

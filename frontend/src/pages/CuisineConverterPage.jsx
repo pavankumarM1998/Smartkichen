@@ -45,33 +45,34 @@ export default function CuisineConverterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto">
+    <div className="page-wide animate-page-enter h-full overflow-hidden flex flex-col !py-0">
+      <div className="flex-1 flex flex-col space-y-3 min-h-0">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <Globe className="w-8 h-8 text-purple-600" />
-            <h1 className="text-4xl font-bold text-gray-900">Cuisine Converter</h1>
-          </div>
-          <p className="text-lg text-gray-600">Transform any recipe into a different culinary style</p>
+        <div>
+          <h1 className="text-4xl font-black text-[#111827] leading-tight mb-1 tracking-tighter">
+            Cuisine <span className="text-[#246A48]">Converter</span> 🌎
+          </h1>
+          <p className="text-[#3a5c51] font-bold uppercase tracking-[0.4em] text-[11px] opacity-60">
+            Transform any recipe into a different culinary style
+          </p>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-6">
           {/* Input Section */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
-              <ChefHat className="w-6 h-6 text-purple-600" />
+          <div className="bg-white rounded-xl shadow-md p-6">
+            <h2 className="text-xl font-black text-[#111827] mb-4 flex items-center gap-2">
+              <span className="p-1.5 bg-purple-50 rounded-lg text-purple-600"><ChefHat className="w-5 h-5" /></span>
               Original Recipe
             </h2>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Recipe Details</label>
+                <label className="label py-1">Recipe Details</label>
                 <textarea
                   value={recipe}
                   onChange={(e) => setRecipe(e.target.value)}
                   placeholder="Paste your recipe here or describe the dish..."
-                  className="w-full h-40 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+                  className="w-full h-24 p-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none text-sm"
                 />
               </div>
 
@@ -109,9 +110,9 @@ export default function CuisineConverterPage() {
           </div>
 
           {/* Output Section */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
-              <Globe className="w-6 h-6 text-pink-600" />
+          <div className="bg-white rounded-xl shadow-md p-6">
+            <h2 className="text-xl font-black text-[#111827] mb-4 flex items-center gap-2">
+              <span className="p-1.5 bg-pink-50 rounded-lg text-pink-600"><Globe className="w-5 h-5" /></span>
               {targetCuisine ? `${targetCuisine} Style` : 'Converted Recipe'}
             </h2>
 
@@ -160,7 +161,7 @@ export default function CuisineConverterPage() {
                     <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
                       <span className="text-xl">🥕</span> Ingredients
                     </h4>
-                    <div className="bg-white border rounded-lg p-4 grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                    <div className="bg-white border rounded-xl p-4 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1 text-sm max-h-[200px] overflow-y-auto scrollbar-premium">
                       {convertedRecipe.ingredients.map((ing, idx) => (
                         <div key={idx} className="flex justify-between items-center border-b border-gray-100 pb-1 last:border-0 hover:bg-gray-50 p-1 rounded">
                           <span className="font-medium text-gray-800">{ing.name}</span>
@@ -177,7 +178,7 @@ export default function CuisineConverterPage() {
                     <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
                       <span className="text-xl">👩‍🍳</span> Instructions
                     </h4>
-                    <ol className="space-y-3">
+                    <ol className="space-y-2 max-h-[300px] overflow-y-auto scrollbar-premium pr-2">
                       {convertedRecipe.steps.map((step, idx) => (
                         <li key={idx} className="flex gap-3 text-sm text-gray-700 bg-gray-50 p-3 rounded-lg">
                           <span className="flex-shrink-0 w-6 h-6 bg-purple-100 text-purple-700 font-bold rounded-full flex items-center justify-center text-xs">
@@ -206,9 +207,8 @@ export default function CuisineConverterPage() {
           </div>
         </div>
 
-        {/* Cuisine Tips */}
-        <div className="mt-8 bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-xl font-semibold mb-4">Cuisine Conversion Tips</h3>
+        {/* Cuisine Tips (Integrated & Smaller) */}
+        <div className="mt-auto bg-gray-50/50 rounded-xl p-4 border border-gray-100">
           <div className="grid md:grid-cols-3 gap-4">
             <div className="p-4 bg-purple-50 rounded-lg">
               <p className="font-semibold text-purple-900 mb-2">🌶️ Spice Levels</p>

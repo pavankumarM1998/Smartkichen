@@ -76,15 +76,16 @@ export default function WasteReductionPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto">
+    <div className="page-wide animate-page-enter h-full overflow-hidden flex flex-col !py-0">
+      <div className="flex-1 flex flex-col space-y-4 min-h-0">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <Leaf className="w-8 h-8 text-green-600" />
-            <h1 className="text-4xl font-bold text-gray-900">Waste Reduction</h1>
-          </div>
-          <p className="text-lg text-gray-600">Smart suggestions to use ingredients before they expire</p>
+        <div className="mb-6">
+          <h1 className="text-4xl font-black text-[#111827] leading-tight mb-1 tracking-tighter">
+            Waste <span className="text-[#246A48]">Reduction</span> 🌱
+          </h1>
+          <p className="text-[#3a5c51] font-bold uppercase tracking-[0.4em] text-[11px] opacity-60">
+            Smart suggestions to use ingredients before they expire
+          </p>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6">
@@ -107,7 +108,9 @@ export default function WasteReductionPage() {
                     <div className="flex-1">
                       <p className="font-medium text-gray-900">{item.ingredientName || item.name || 'Unknown Item'}</p>
                       <p className="text-xs text-gray-500">
-                        Expires: {new Date(item.expiryDate).toLocaleDateString()}
+                        Expires: {item.expiryDate && !isNaN(new Date(item.expiryDate).getTime()) 
+                          ? new Date(item.expiryDate).toLocaleDateString() 
+                          : 'No date set'}
                       </p>
                     </div>
                   </label>
@@ -124,8 +127,8 @@ export default function WasteReductionPage() {
           </div>
 
           {/* Suggestions */}
-          <div className="lg:col-span-2">
-            <div className="space-y-4">
+          <div className="lg:col-span-2 overflow-y-auto pr-1 scrollbar-premium h-full min-h-0">
+            <div className="space-y-3">
               {suggestions.length > 0 ? (
                 suggestions.map((suggestion, idx) => (
                   <div key={idx} className="bg-white rounded-lg shadow-md p-6 border-l-4 border-green-500">
@@ -173,22 +176,28 @@ export default function WasteReductionPage() {
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-white rounded-lg shadow-md p-6 text-center">
-            <Leaf className="w-8 h-8 text-green-600 mx-auto mb-2" />
-            <p className="text-3xl font-bold text-gray-900">0kg</p>
-            <p className="text-gray-600 text-sm">Food Saved This Month</p>
+        {/* Stats (Integrated) */}
+        <div className="mt-auto grid grid-cols-1 md:grid-cols-3 gap-3 shrink-0">
+          <div className="bg-white/50 rounded-xl p-4 border border-slate-100 flex items-center gap-4">
+            <Leaf className="w-6 h-6 text-green-600" />
+            <div>
+              <p className="text-xl font-bold text-gray-900">0kg</p>
+              <p className="text-slate-500 text-[10px] uppercase font-black tracking-widest leading-none">Food Saved</p>
+            </div>
           </div>
-          <div className="bg-white rounded-lg shadow-md p-6 text-center">
-            <TrendingDown className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-            <p className="text-3xl font-bold text-gray-900">0%</p>
-            <p className="text-gray-600 text-sm">Waste Reduction Rate</p>
+          <div className="bg-white/50 rounded-xl p-4 border border-slate-100 flex items-center gap-4">
+            <TrendingDown className="w-6 h-6 text-blue-600" />
+            <div>
+              <p className="text-xl font-bold text-gray-900">0%</p>
+              <p className="text-slate-500 text-[10px] uppercase font-black tracking-widest leading-none">Reduction Rate</p>
+            </div>
           </div>
-          <div className="bg-white rounded-lg shadow-md p-6 text-center">
-            <AlertCircle className="w-8 h-8 text-amber-600 mx-auto mb-2" />
-            <p className="text-3xl font-bold text-gray-900">{ingredients.length}</p>
-            <p className="text-gray-600 text-sm">Items to Use</p>
+          <div className="bg-white/50 rounded-xl p-4 border border-slate-100 flex items-center gap-4">
+            <AlertCircle className="w-6 h-6 text-amber-600" />
+            <div>
+              <p className="text-xl font-bold text-gray-900">{ingredients.length}</p>
+              <p className="text-slate-500 text-[10px] uppercase font-black tracking-widest leading-none">Items to Use</p>
+            </div>
           </div>
         </div>
       </div>

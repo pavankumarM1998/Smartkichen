@@ -78,15 +78,15 @@ export default function AIChatPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto h-screen flex flex-col">
+    <div className="h-[calc(100vh-80px)] overflow-hidden py-4 px-4 sm:px-6 lg:px-8 animate-page-enter">
+      <div className="max-w-4xl mx-auto h-full flex flex-col gap-4">
         {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-center gap-3 mb-4">
-            <MessageCircle className="w-8 h-8 text-purple-600" />
-            <h1 className="text-4xl font-bold text-gray-900">AI Chef Assistant</h1>
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-3">
+            <span className="p-2 bg-[#246A48]/10 rounded-xl text-[#246A48]"><MessageCircle className="w-5 h-5" /></span>
+            <h1 className="text-2xl font-black text-[#111827] leading-tight">AI Chef <span className="text-[#246A48]">Assistant</span></h1>
           </div>
-          <p className="text-lg text-gray-600">Your personal cooking companion, available 24/7</p>
+          <p className="text-[#3a5c51] font-bold uppercase tracking-[0.2em] text-[10px] opacity-80">Your personal cooking companion, available 24/7</p>
         </div>
 
         {/* Chat Container */}

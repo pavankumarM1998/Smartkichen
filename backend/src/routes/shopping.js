@@ -11,6 +11,9 @@ router.get('/', shoppingController.getShoppingLists);
 // Create shopping list
 router.post('/', shoppingController.createShoppingList);
 
+// Delete shopping list
+router.delete('/remove-list/:id', shoppingController.deleteShoppingList);
+
 // Get shopping list by ID
 router.get('/:id', shoppingController.getShoppingList);
 

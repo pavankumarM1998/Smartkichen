@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { pantryService } from '../services/apiService';
 import toast from 'react-hot-toast';
-import { FaCheckSquare, FaSquare } from 'react-icons/fa';
+import { FaCheckSquare, FaSquare, FaMagic, FaBoxOpen, FaCalendarAlt, FaShoppingCart, FaCamera } from 'react-icons/fa';
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -145,128 +145,228 @@ const HomePage = () => {
     });
   };
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return { text: 'Good Morning', emoji: '🌅' };
+    if (hour < 17) return { text: 'Good Afternoon', emoji: '☀️' };
+    return { text: 'Good Evening', emoji: '🌙' };
+  };
+  const greeting = getGreeting();
+  const firstName = user?.name?.split(' ')[0] || 'Chef';
+
+  const quickLinks = [
+    {
+      path: '/pantry',
+      emoji: '📦',
+      label: 'My Pantry',
+      sub: 'Track & manage ingredients',
+      badge: 'Inventory',
+      badgeColor: 'bg-emerald-100 text-[#246A48]',
+      iconBg: 'bg-[#246A48]/10',
+      hoverBorder: 'hover:border-[#246A48]/40',
+    },
+    {
+      path: '/meal-planner',
+      emoji: '📅',
+      label: 'Weekly Planner',
+      sub: 'Plan meals for the week',
+      badge: 'Schedule',
+      badgeColor: 'bg-violet-100 text-violet-800',
+      iconBg: 'bg-violet-500/10',
+      hoverBorder: 'hover:border-violet-500/40',
+    },
+    {
+      path: '/shopping-list',
+      emoji: '🛒',
+      label: 'Shopping List',
+      sub: 'Smart budget shopping',
+      badge: 'Smart Buy',
+      badgeColor: 'bg-orange-100 text-orange-800',
+      iconBg: 'bg-orange-500/10',
+      hoverBorder: 'hover:border-orange-500/40',
+    },
+    {
+      path: '/fridge-scanner',
+      emoji: '📸',
+      label: 'Fridge Scanner',
+      sub: 'AI ingredient scanner',
+      badge: 'AI Vision',
+      badgeColor: 'bg-cyan-100 text-cyan-800',
+      iconBg: 'bg-cyan-500/10',
+      hoverBorder: 'hover:border-cyan-500/40',
+    },
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
+    <div className="h-[calc(100vh-80px)] flex flex-col gap-4 overflow-hidden pt-4 pb-2">
 
-      {/* Main Content */}
-      <div className="max-w-4xl mx-auto px-4 py-12">
-        <div className="grid md:grid-cols-2 gap-8">
-          {/* Left: Feature Cards */}
-          <div className="space-y-4">
-            <div className="card-hover" onClick={() => navigate('/pantry')}>
-              <div className="text-3xl mb-2">📦</div>
-              <h3 className="font-semibold text-lg">My Pantry</h3>
-              <p className="text-sm text-gray-600">Manage your ingredients & track expiry</p>
-            </div>
+      {/* ── Welcome Banner ── */}
+      <div className="w-full max-w-[920px] mx-auto">
+        <div className="bg-gradient-to-r from-[#246A48] to-[#1f332c] relative overflow-hidden rounded-xl px-5 py-3.5 flex items-center justify-between shadow-sm">
+          {/* decorative blobs */}
+          <div className="absolute -top-6 -right-6 w-28 h-28 rounded-full opacity-20" style={{ background: 'radial-gradient(circle, #ffffff 0%, transparent 70%)' }} />
+          <div className="absolute bottom-0 left-40 w-20 h-20 rounded-full opacity-10" style={{ background: 'radial-gradient(circle, #ffffff 0%, transparent 70%)' }} />
 
-            <div className="card-hover" onClick={() => navigate('/meal-planner')}>
-              <div className="text-3xl mb-2">📅</div>
-              <h3 className="font-semibold text-lg">Weekly Planner</h3>
-              <p className="text-sm text-gray-600">Plan meals for the week ahead</p>
-            </div>
-
-            <div className="card-hover" onClick={() => navigate('/shopping-list')}>
-              <div className="text-3xl mb-2">🛒</div>
-              <h3 className="font-semibold text-lg">Shopping List</h3>
-              <p className="text-sm text-gray-600">Smart shopping with cost estimates</p>
-            </div>
-
-            <div className="card-hover" onClick={() => navigate('/fridge-scanner')}>
-              <div className="text-3xl mb-2">📱</div>
-              <h3 className="font-semibold text-lg">Fridge Scanner</h3>
-              <p className="text-sm text-gray-600">Scan & auto-add ingredients</p>
-            </div>
+          <div>
+            <p className="text-emerald-50 text-[10px] font-bold uppercase tracking-[0.15em] mb-0.5">
+              {greeting.emoji} {greeting.text}
+            </p>
+            <h1 className="text-white text-lg font-black leading-tight">
+              Welcome back, <span className="text-emerald-200">{firstName}!</span>
+            </h1>
+            <p className="text-emerald-50/90 text-[11px] font-medium mt-0.5">
+              What delicious dish will you create today? ✨
+            </p>
           </div>
 
-          {/* Right: Recipe Generator */}
-          <div className="card border-2 border-green-200 p-6">
-            <h2 className="text-2xl font-bold mb-6">🤖 Generate Recipe</h2>
+        {/* right: quick stats */}
+        <div className="hidden lg:flex items-center gap-3">
+          <div className="text-center px-3 py-2 bg-white/10 rounded-xl backdrop-blur-sm border border-white/10">
+            <div className="text-white text-lg font-black">🍳</div>
+            <p className="text-emerald-300 text-[9px] font-black uppercase tracking-wider mt-0.5">Cook</p>
+          </div>
+          <div className="text-center px-3 py-2 bg-white/10 rounded-xl backdrop-blur-sm border border-white/10">
+            <div className="text-white text-lg font-black">🤖</div>
+            <p className="text-emerald-300 text-[9px] font-black uppercase tracking-wider mt-0.5">AI Chef</p>
+          </div>
+          <div className="text-center px-3 py-2 bg-white/10 rounded-xl backdrop-blur-sm border border-white/10">
+            <div className="text-white text-lg font-black">🥗</div>
+            <p className="text-emerald-300 text-[9px] font-black uppercase tracking-wider mt-0.5">Healthy</p>
+          </div>
+        </div>
+        </div>
+      </div>
 
-            {/* Ingredients Input */}
-            <div className="mb-6">
-              <div className="flex gap-2 mb-3">
-                <button
-                  onClick={handleShowPantrySelector}
-                  className="btn-outline flex-1"
-                >
-                  📦 Select from Pantry
-                </button>
+      {/* ── Main Layout: Left nav + Right recipe ── */}
+      <div className="flex-1 flex justify-center gap-5 min-h-0 max-w-[920px] mx-auto w-full">
+
+        {/* ─── Left: Navigation Cards (Single Column) ─── */}
+        <div className="w-[280px] bg-white rounded-xl border border-slate-100 p-4 shadow-sm flex flex-col gap-3 min-h-0 flex-shrink-0">
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-1">Quick Access</p>
+          <div className="flex flex-col gap-3 flex-1 overflow-y-auto pr-1">
+            {quickLinks.map((link, i) => (
+              <div
+                key={i}
+                onClick={() => navigate(link.path)}
+                className={`group relative overflow-hidden bg-white rounded-xl border border-slate-100 cursor-pointer transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 ${link.hoverBorder} animate-page-enter flex items-center p-3 gap-3 flex-1`}
+              >
+                
+                {/* Header: Icon */}
+                <div className={`w-10 h-10 rounded-xl ${link.iconBg} flex items-center justify-center text-xl group-hover:scale-110 transition-transform duration-300 flex-shrink-0`}>
+                  {link.emoji}
+                </div>
+
+                {/* Text & Badge (Horizontal Stack) */}
+                <div className="flex-1 flex flex-col min-w-0 pr-1 gap-1">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-[13px] font-black text-[#111827] leading-tight flex-shrink-0 whitespace-nowrap">{link.label}</h3>
+                    <span className={`text-[8px] font-extrabold px-1.5 py-0.5 rounded-md ${link.badgeColor}`}>
+                      {link.badge}
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-slate-500 font-medium leading-tight line-clamp-1">{link.sub}</p>
+                </div>
+
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ─── Right: AI Recipe Generator ─── */}
+        <div className="w-[620px] max-w-full flex flex-col min-h-0 flex-shrink-0">
+          <div className="flex flex-col overflow-hidden rounded-xl border border-emerald-200 bg-white h-full">
+
+            {/* Body: Linear Stack matching requested layout including simplified title */}
+            <div className="flex flex-col gap-5 p-6 flex-1 min-h-0 overflow-y-auto">
+
+              {/* Simplified Header matching Mockup + Live badge */}
+              <div className="flex items-center justify-between pb-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">🤖</span>
+                  <h2 className="text-[22px] font-bold text-slate-800 tracking-tight">Generate Recipe</h2>
+                </div>
+                <div className="flex items-center gap-1.5 text-white bg-gradient-to-r from-[#246A48] to-[#1f332c] text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest shadow-sm">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  Live
+                </div>
               </div>
 
-              <form onSubmit={addIngredient} className="flex gap-2 mb-3">
+              <button
+                onClick={handleShowPantrySelector}
+                className="w-full py-2.5 rounded-xl text-[15px] flex items-center justify-center gap-2 text-white font-semibold bg-gradient-to-r from-[#246A48] to-[#1f332c] hover:opacity-90 transition-all shadow-md shadow-[#246A48]/20"
+              >
+                <span>📦</span> Select from Pantry
+              </button>
+
+              <div className="flex gap-3 items-center">
                 <input
                   type="text"
                   placeholder="Or type ingredient manually"
                   value={ingredientInput}
                   onChange={(e) => setIngredientInput(e.target.value)}
-                  className="input-field flex-1"
+                  onKeyDown={(e) => e.key === 'Enter' && addIngredient(e)}
+                  className="flex-1 border border-slate-300 rounded-lg px-4 py-2.5 outline-none focus:border-emerald-500 text-[14px] text-slate-700 placeholder:text-slate-400"
                 />
-                <button type="submit" className="btn-primary">
-                  ➕ Add
+                <button
+                  onClick={addIngredient}
+                  className="bg-gradient-to-r from-[#246A48] to-[#1f332c] hover:opacity-90 text-white px-5 py-2.5 rounded-xl font-semibold text-[15px] flex items-center gap-1.5 transition-all shadow-md shadow-[#246A48]/20 flex-shrink-0"
+                >
+                  <span className="text-emerald-400 font-bold text-lg leading-none">+</span> Add
                 </button>
-              </form>
+              </div>
 
+              {/* Ingredients area */}
               {ingredients.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   {ingredients.map((ing, idx) => (
-                    <div
-                      key={idx}
-                      className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm flex items-center gap-2"
-                    >
+                    <div key={idx} className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-1.5 rounded-md text-[13px] font-medium">
                       {ing}
-                      <button
-                        onClick={() => removeIngredient(idx)}
-                        className="hover:text-green-900 font-bold"
-                      >
-                        ✕
-                      </button>
+                      <button onClick={() => removeIngredient(idx)} className="text-emerald-400 hover:text-emerald-600 font-bold ml-1 text-sm leading-none">×</button>
                     </div>
                   ))}
                 </div>
               )}
+
+              <div>
+                <label className="block text-[14px] text-slate-700 mb-2">Health Mode:</label>
+                <select
+                  value={healthMode}
+                  onChange={(e) => setHealthMode(e.target.value)}
+                  className="w-full border border-slate-300 rounded-lg px-3 py-2.5 outline-none focus:border-emerald-500 bg-white text-[14px] text-slate-700 cursor-pointer"
+                >
+                  {healthModes.map((mode) => (
+                    <option key={mode.value} value={mode.value}>{mode.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[14px] text-slate-700 mb-2">Servings:</label>
+                <input
+                  type="number" min="1" max="10" value={servings}
+                  onChange={(e) => setServings(parseInt(e.target.value))}
+                  className="w-full border border-slate-300 rounded-lg px-3 py-2.5 outline-none focus:border-emerald-500 text-[14px] text-slate-700"
+                />
+              </div>
+
+              <div className="mt-2 text-center">
+                <button
+                  onClick={handleGenerateRecipe}
+                  disabled={ingredients.length === 0}
+                  className={`w-full py-3.5 rounded-xl flex items-center justify-center gap-2 text-white font-bold text-[16px] transition-all duration-300 ${
+                    ingredients.length === 0
+                      ? 'bg-slate-300 cursor-not-allowed opacity-60'
+                      : 'bg-gradient-to-r from-[#246A48] to-[#1f332c] hover:-translate-y-0.5 hover:shadow-xl shadow-lg shadow-[#246A48]/30'
+                  }`}
+                >
+                  <span>✨</span> Generate Recipe
+                </button>
+                <p className="text-[13px] text-slate-500 mt-4">
+                  Add at least 1 ingredient to generate recipes
+                </p>
+              </div>
+
             </div>
-
-            {/* Health Mode */}
-            <div className="mb-6">
-              <label className="label">Health Mode:</label>
-              <select
-                value={healthMode}
-                onChange={(e) => setHealthMode(e.target.value)}
-                className="input-field"
-              >
-                {healthModes.map((mode) => (
-                  <option key={mode.value} value={mode.value}>
-                    {mode.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Servings */}
-            <div className="mb-6">
-              <label className="label">Servings:</label>
-              <input
-                type="number"
-                min="1"
-                max="10"
-                value={servings}
-                onChange={(e) => setServings(parseInt(e.target.value))}
-                className="input-field"
-              />
-            </div>
-
-            {/* Generate Button */}
-            <button
-              onClick={handleGenerateRecipe}
-              disabled={ingredients.length === 0}
-              className="btn-primary w-full py-3 text-lg font-bold disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              ✨ Generate Recipe
-            </button>
-
-            <p className="text-xs text-gray-500 text-center mt-4">
-              Add at least 1 ingredient to generate recipes
-            </p>
           </div>
         </div>
       </div>
@@ -314,7 +414,7 @@ const HomePage = () => {
                     <div className="flex gap-2">
                       <button
                         onClick={selectAllPantry}
-                        className="text-xs px-2 py-1 border border-green-500 text-green-600 rounded hover:bg-green-50"
+                        className="text-xs px-2 py-1 border border-[#3e6b41] text-[#3e6b41] rounded-xl hover:bg-emerald-50 transition-all font-bold"
                       >
                         Select All
                       </button>
@@ -340,7 +440,7 @@ const HomePage = () => {
                         <div className="flex items-center gap-3">
                           <div className="text-xl">
                             {selectedPantryItems.has(idx) ? (
-                              <FaCheckSquare className="text-green-600" />
+                              <FaCheckSquare className="text-[#3e6b41]" />
                             ) : (
                               <FaSquare className="text-gray-400" />
                             )}

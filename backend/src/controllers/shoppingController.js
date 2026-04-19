@@ -180,6 +180,32 @@ const markItemAsPurchased = async (req, res, next) => {
   }
 };
 
+const deleteShoppingList = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    console.log(`🗑️ Attempting to delete shopping list: ${id} for user: ${req.userId}`);
+
+    const list = await db.getDocById(db.paths.shoppingLists, id);
+
+    if (!list) {
+      console.warn(`⚠️ List ${id} not found`);
+      return apiResponse(res, 404, false, 'Shopping list not found');
+    }
+
+    if (list.userId !== req.userId) {
+      console.warn(`🚫 User ${req.userId} unauthorized to delete list ${id}`);
+      return apiResponse(res, 403, false, 'Unauthorized to delete this list');
+    }
+
+    await db.deleteDoc(db.paths.shoppingLists, id);
+    console.log(`✅ Successfully deleted shopping list: ${id}`);
+
+    apiResponse(res, 200, true, 'Shopping list deleted');
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getShoppingLists,
   createShoppingList,
@@ -188,4 +214,5 @@ module.exports = {
   updateShoppingListItem,
   removeItemFromShoppingList,
   markItemAsPurchased,
+  deleteShoppingList,
 };
