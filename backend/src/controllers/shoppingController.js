@@ -67,7 +67,32 @@ const addItemToShoppingList = async (req, res, next) => {
 
     const items = list.items || [];
 
-    // Create new item
+    // Normalize name for comparison
+    const normalizedNewName = (ingredientName || '').toLowerCase().trim();
+
+    // Check if item already exists in this specific list
+    const existingIndex = items.findIndex(item => {
+      const normalizedExistingName = (item.ingredient?.name || '').toLowerCase().trim();
+      return (
+        (item.ingredientId && item.ingredientId === ingredientId) ||
+        normalizedExistingName === normalizedNewName
+      );
+    });
+
+    if (existingIndex !== -1) {
+      // Increment existing quantity
+      items[existingIndex] = {
+        ...items[existingIndex],
+        quantity: Number(items[existingIndex].quantity) + Number(quantity),
+        estimatedCost: (items[existingIndex].estimatedCost || 0) + (estimatedCost || 0),
+        updatedAt: new Date().toISOString()
+      };
+
+      await db.updateDoc(db.paths.shoppingLists, id, { items });
+      return apiResponse(res, 200, true, 'Item quantity updated globally', items[existingIndex]);
+    }
+
+    // Create new item if not found
     const newItem = {
       id: db.generateId(),
       ingredientId,

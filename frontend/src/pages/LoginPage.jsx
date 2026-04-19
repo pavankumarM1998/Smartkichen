@@ -110,7 +110,7 @@ const LoginPage = () => {
           {/* Logo with Glow (Matches Attached Image) */}
           <div className="flex items-center gap-5 group cursor-pointer">
             <div className="w-20 h-20 rounded-[1.75rem] overflow-hidden bg-white shadow-2xl shadow-[#3e6b41]/40 flex items-center justify-center border-2 border-white/30 transform group-hover:scale-105 transition-all">
-              <img src="/logo.png" alt="CookGenie Logo" className="w-[200%] max-w-none h-full object-cover object-left" />
+              <img src="/logo.png" alt="CookGenie Logo" className="w-full h-full object-contain p-2" />
             </div>
             <div>
               <span className="text-3xl font-black tracking-tighter text-white block leading-none">CookGenie</span>
@@ -139,8 +139,8 @@ const LoginPage = () => {
           </div>
           
           <div className="flex items-center gap-4 opacity-50">
-            <div className="h-[1px] w-16 bg-white" />
-            <span className="text-[11px] font-black uppercase tracking-[0.3em]">Established 2024</span>
+            <div className="h-[1px] w-12 bg-white" />
+            <span className="text-[11px] font-black uppercase tracking-[0.3em]">AI-DRIVEN CULINARY INTELLIGENCE</span>
           </div>
         </div>
       </div>
@@ -240,7 +240,7 @@ const LoginPage = () => {
                 onClick={handleGoogleLogin}
                 className="w-full py-3 bg-white border border-gray-200 rounded-xl text-gray-700 font-semibold text-sm transition-all hover:bg-gray-50 hover:border-[#246A48]/30 flex items-center justify-center gap-2 shadow-sm"
               >
-                <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5" alt="Google" />
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-5 h-5" alt="Google" />
                 Continue with Google
               </button>
             </div>

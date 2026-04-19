@@ -72,15 +72,20 @@ const addPantryItem = async (req, res, next) => {
       return apiResponse(res, 400, false, 'Either ingredientId or ingredientName is required');
     }
 
-    // Check if already in pantry
+    // Check if already in pantry (Case-insensitive check)
     const existingItems = await db.getDocs(db.paths.pantryItems, {
       userId: req.userId,
     });
 
-    const existing = existingItems.find(item =>
-      item.ingredientId === finalIngredientId ||
-      item.ingredientName === finalIngredientName
-    );
+    const normalizedNewName = (finalIngredientName || '').toLowerCase().trim();
+
+    const existing = existingItems.find(item => {
+      const normalizedExistingName = (item.ingredientName || '').toLowerCase().trim();
+      return (
+        item.ingredientId === finalIngredientId || 
+        normalizedExistingName === normalizedNewName
+      );
+    });
 
     if (existing) {
       // Update quantity instead
@@ -88,7 +93,10 @@ const addPantryItem = async (req, res, next) => {
         db.paths.pantryItems,
         existing.id,
         {
-          quantity: existing.quantity + quantity,
+          quantity: Number(existing.quantity) + Number(quantity),
+          // Update unit/expiry if newly provided
+          unit: unit || existing.unit,
+          expiryDate: expiryDate || existing.expiryDate
         }
       );
 
