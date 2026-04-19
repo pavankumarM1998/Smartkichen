@@ -9,7 +9,7 @@
         "logout": "Logout"
     },
     "home": {
-        "title": "SmartKitchen AI",
+        "title": "CookGenie",
         "subtitle": "Your AI-Powered Cooking Assistant",
         "features": {
             "smartRecipes": "Smart Recipes",

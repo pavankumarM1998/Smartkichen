@@ -58,12 +58,12 @@ const Sidebar = ({ user, onLogout }) => {
 
       {/* Logo */}
       <NavLink to="/" className="flex items-center gap-3 px-4 mb-8 group no-underline">
-        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#246A48] to-[#1a2d27] flex items-center justify-center text-lg shadow-xl border border-white/10 group-hover:scale-110 transition-all duration-300">
-          🥗
+        <div className="w-10 h-10 rounded-xl overflow-hidden bg-white flex items-center justify-center shadow-lg border border-white/20 group-hover:scale-110 transition-all duration-300">
+          <img src="/logo.png" alt="CookGenie Logo" className="w-full h-full object-cover" />
         </div>
         <div className="flex flex-col">
-          <span className="text-base font-black text-white leading-tight tracking-tight">SmartKitchen</span>
-          <span className="text-[8px] font-black text-[#567a68] tracking-[0.3em] uppercase opacity-70">Intelligence AI</span>
+          <span className="text-base font-black text-white leading-tight tracking-tight">CookGenie</span>
+          <span className="text-[8px] font-black text-[#4ade80] tracking-[0.15em] uppercase opacity-90">Your AI Cooking Assistant</span>
         </div>
       </NavLink>
 

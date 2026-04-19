@@ -109,16 +109,14 @@ const LoginPage = () => {
         <div className="relative z-30 flex flex-col justify-between h-full">
           {/* Logo with Glow (Matches Attached Image) */}
           <div className="flex items-center gap-5 group cursor-pointer">
-            <div className="w-16 h-16 rounded-[1.75rem] bg-gradient-to-br from-[#3e6b41] via-[#3e6b41] to-[#b47b33] shadow-2xl shadow-[#3e6b41]/40 flex items-center justify-center border-2 border-white/30 transform group-hover:scale-105 transition-all">
-              <div className="relative">
-                <span className="text-4xl">🍳</span>
-              </div>
+            <div className="w-20 h-20 rounded-[1.75rem] overflow-hidden bg-white shadow-2xl shadow-[#3e6b41]/40 flex items-center justify-center border-2 border-white/30 transform group-hover:scale-105 transition-all">
+              <img src="/logo.png" alt="CookGenie Logo" className="w-full h-full object-cover" />
             </div>
             <div>
-              <span className="text-3xl font-black tracking-tighter text-white block leading-none">SmartKitchen</span>
+              <span className="text-3xl font-black tracking-tighter text-white block leading-none">CookGenie</span>
               <div className="flex items-center gap-2 mt-2">
                 <div className="h-[2px] w-6 bg-[#3e6b41]" />
-                <span className="text-[12px] font-bold text-[#4ade80] uppercase tracking-[0.2em]">AI ASSISTANT</span>
+                <span className="text-[12px] font-bold text-[#4ade80] uppercase tracking-[0.2em]">Your AI Cooking Assistant</span>
               </div>
             </div>
           </div>
