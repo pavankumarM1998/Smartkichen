@@ -59,7 +59,7 @@ const Sidebar = ({ user, onLogout }) => {
       {/* Logo */}
       <NavLink to="/" className="flex items-center gap-3 px-4 mb-8 group no-underline">
         <div className="w-10 h-10 rounded-xl overflow-hidden bg-white flex items-center justify-center shadow-lg border border-white/20 group-hover:scale-110 transition-all duration-300">
-          <img src="/logo.png" alt="CookGenie Logo" className="w-full h-full object-cover" />
+          <img src="/logo.png" alt="CookGenie Logo" className="w-[200%] max-w-none h-full object-cover object-left" />
         </div>
         <div className="flex flex-col">
           <span className="text-base font-black text-white leading-tight tracking-tight">CookGenie</span>

@@ -110,7 +110,7 @@ const LoginPage = () => {
           {/* Logo with Glow (Matches Attached Image) */}
           <div className="flex items-center gap-5 group cursor-pointer">
             <div className="w-20 h-20 rounded-[1.75rem] overflow-hidden bg-white shadow-2xl shadow-[#3e6b41]/40 flex items-center justify-center border-2 border-white/30 transform group-hover:scale-105 transition-all">
-              <img src="/logo.png" alt="CookGenie Logo" className="w-full h-full object-cover" />
+              <img src="/logo.png" alt="CookGenie Logo" className="w-[200%] max-w-none h-full object-cover object-left" />
             </div>
             <div>
               <span className="text-3xl font-black tracking-tighter text-white block leading-none">CookGenie</span>
