@@ -2,197 +2,7 @@ const { apiResponse } = require('../utils/response');
 const aiService = require('../services/aiService');
 const db = require('../services/realtimeDbService');
 
-// Fallback recipe templates when AI fails
-const fallbackRecipes = {
-  en: {
-    rice: {
-      title: 'Simple Fried Rice',
-      description: 'A quick and easy fried rice recipe using your available ingredients',
-      difficulty: 'Easy',
-      prepTime: 10,
-      cookTime: 15,
-      estimatedCost: 5,
-      wasteSavings: 2,
-      ingredients: [
-        { name: 'rice', quantity: 2, unit: 'cups' },
-        { name: 'oil', quantity: 2, unit: 'tablespoons' },
-        { name: 'salt', quantity: 1, unit: 'teaspoon' },
-        { name: 'soy sauce', quantity: 1, unit: 'tablespoon' },
-      ],
-      steps: [
-        { stepNumber: 1, instruction: 'Heat 2 tablespoons of oil in a large wok or frying pan over medium-high heat. Make sure the pan is hot before adding the rice - you should see the oil shimmering.', duration: 2 },
-        { stepNumber: 2, instruction: 'Add the cooked rice to the hot pan, breaking up any clumps with a spatula. Spread it out evenly across the pan surface.', duration: 2 },
-        { stepNumber: 3, instruction: 'Stir-fry the rice continuously for 5-7 minutes, tossing and flipping to ensure even heating. The rice should start to get slightly crispy and golden on the edges.', duration: 7 },
-        { stepNumber: 4, instruction: 'Add soy sauce and salt to taste. Mix well to ensure the seasoning is evenly distributed throughout the rice.', duration: 1 },
-        { stepNumber: 5, instruction: 'Remove from heat and transfer to a serving dish. Serve immediately while hot and crispy. Garnish with green onions or sesame seeds if available.', duration: 1 },
-      ],
-      nutrition: {
-        calories: 250,
-        protein: 5,
-        fat: 8,
-        carbs: 40,
-        fiber: 2,
-      },
-    },
-    chicken: {
-      title: 'Simple Grilled Chicken',
-      description: 'Perfectly seasoned grilled chicken with a golden, crispy exterior',
-      difficulty: 'Easy',
-      prepTime: 10,
-      cookTime: 20,
-      estimatedCost: 8,
-      wasteSavings: 3,
-      ingredients: [
-        { name: 'chicken', quantity: 500, unit: 'grams' },
-        { name: 'salt', quantity: 1, unit: 'teaspoon' },
-        { name: 'pepper', quantity: 0.5, unit: 'teaspoon' },
-        { name: 'oil', quantity: 1, unit: 'tablespoon' },
-        { name: 'garlic powder', quantity: 0.5, unit: 'teaspoon' },
-      ],
-      steps: [
-        { stepNumber: 1, instruction: 'Pat the chicken dry with paper towels to remove excess moisture. This helps achieve a better sear and prevents steaming.', duration: 2 },
-        { stepNumber: 2, instruction: 'Season both sides of the chicken generously with salt, pepper, and garlic powder. Rub the seasonings into the meat to ensure they adhere well.', duration: 3 },
-        { stepNumber: 3, instruction: 'Heat 1 tablespoon of oil in a large skillet or grill pan over medium heat. Let the pan heat for about 2 minutes until the oil is shimmering but not smoking.', duration: 2 },
-        { stepNumber: 4, instruction: 'Carefully place the chicken in the hot pan. Cook without moving for 8-10 minutes until the bottom develops a golden-brown crust.', duration: 10 },
-        { stepNumber: 5, instruction: 'Flip the chicken and cook the other side for another 8-10 minutes. The internal temperature should reach 165°F (74°C) when fully cooked.', duration: 10 },
-        { stepNumber: 6, instruction: 'Remove from heat and let the chicken rest on a cutting board for 5 minutes. This allows the juices to redistribute, keeping the meat moist and tender.', duration: 5 },
-        { stepNumber: 7, instruction: 'Slice and serve with your favorite sides. The chicken should be juicy inside with a crispy, flavorful exterior.', duration: 2 },
-      ],
-      nutrition: {
-        calories: 300,
-        protein: 35,
-        fat: 15,
-        carbs: 2,
-        fiber: 0,
-      },
-    },
-    eggs: {
-      title: 'Classic Scrambled Eggs',
-      description: 'Fluffy, creamy scrambled eggs cooked to perfection',
-      difficulty: 'Easy',
-      prepTime: 2,
-      cookTime: 5,
-      estimatedCost: 3,
-      wasteSavings: 1,
-      ingredients: [
-        { name: 'eggs', quantity: 3, unit: 'pieces' },
-        { name: 'butter', quantity: 1, unit: 'tablespoon' },
-        { name: 'milk', quantity: 1, unit: 'tablespoon' },
-        { name: 'salt', quantity: 0.5, unit: 'teaspoon' },
-        { name: 'pepper', quantity: 0.25, unit: 'teaspoon' },
-      ],
-      steps: [
-        { stepNumber: 1, instruction: 'Crack the eggs into a medium bowl. Add milk, salt, and pepper. Whisk vigorously for about 30 seconds until the mixture is well combined and slightly frothy.', duration: 2 },
-        { stepNumber: 2, instruction: 'Heat a non-stick pan over medium-low heat. Add butter and let it melt completely, swirling to coat the entire bottom of the pan. The butter should foam but not brown.', duration: 1 },
-        { stepNumber: 3, instruction: 'Pour the egg mixture into the pan. Let it sit undisturbed for about 20 seconds until the edges just begin to set.', duration: 1 },
-        { stepNumber: 4, instruction: 'Using a silicone spatula, gently push the eggs from the edges toward the center, tilting the pan to let uncooked egg flow to the edges. Continue this process for 3-4 minutes.', duration: 4 },
-        { stepNumber: 5, instruction: 'When the eggs are mostly set but still slightly wet and glossy, remove from heat immediately. The residual heat will finish cooking them to creamy perfection.', duration: 1 },
-        { stepNumber: 6, instruction: 'Transfer to a plate and serve immediately. The eggs should be soft, fluffy, and creamy - not dry or rubbery. Garnish with fresh herbs if desired.', duration: 1 },
-      ],
-      nutrition: {
-        calories: 220,
-        protein: 18,
-        fat: 16,
-        carbs: 2,
-        fiber: 0,
-      },
-    },
-  },
-  te: {
-    rice: {
-      title: 'సింపుల్ ఫ్రైడ్ రైస్',
-      description: 'మీ అందుబాటులో ఉన్న పదార్థాలను ఉపయోగించి త్వరగా మరియు సులభంగా ఫ్రైడ్ రైస్ రెసిపీ',
-      difficulty: 'సులభం',
-      prepTime: 10,
-      cookTime: 15,
-      estimatedCost: 5,
-      wasteSavings: 2,
-      ingredients: [
-        { name: 'బియ్యం', quantity: 2, unit: 'కప్పులు' },
-        { name: 'నూనె', quantity: 2, unit: 'టేబుల్‌స్పూన్లు' },
-        { name: 'ఉప్పు', quantity: 1, unit: 'టీస్పూన్' },
-        { name: 'సోయా సాస్', quantity: 1, unit: 'టేబుల్‌స్పూన్' },
-      ],
-      steps: [
-        { stepNumber: 1, instruction: 'పెద్ద వోక్ లేదా ఫ్రైయింగ్ పాన్‌లో 2 టేబుల్‌స్పూన్ల నూనెను మధ్యం-అధిక వేడిపై వేడి చేయండి. బియ్యం జోడించే ముందు పాన్ వేడిగా ఉందని నిర్ధారించుకోండి - మీరు నూనె మెరుస్తున్నట్లు చూడాలి.', duration: 2 },
-        { stepNumber: 2, instruction: 'వండిన బియ్యాన్ని వేడి పాన్‌లోకి జోడించండి, గడ్డలను స్పాటులాతో విడదీయండి. పాన్ ఉపరితలం అంతటా సమానంగా విస్తరించండి.', duration: 2 },
-        { stepNumber: 3, instruction: 'బియ్యాన్ని 5-7 నిమిషాలు నిరంతరం వేయించండి, సమాన వేడిని నిర్ధారించడానికి తిప్పండి. బియ్యం అంచులలో కొంచెం క్రిస్పీగా మరియు బంగారు రంగులోకి మారడం ప్రారంభించాలి.', duration: 7 },
-        { stepNumber: 4, instruction: 'రుచికి సోయా సాస్ మరియు ఉప్పు జోడించండి. మసాలా బియ్యం అంతటా సమానంగా పంపిణీ చేయబడిందని నిర్ధారించుకోవడానికి బాగా కలపండి.', duration: 1 },
-        { stepNumber: 5, instruction: 'వేడి నుండి తొలగించి, సర్వింగ్ డిష్‌కు బదిలీ చేయండి. వేడిగా మరియు క్రిస్పీగా ఉన్నప్పుడు వెంటనే సర్వ్ చేయండి. అందుబాటులో ఉంటే పచ్చి ఉల్లిపాయలు లేదా నువ్వులతో అలంకరించండి.', duration: 1 },
-      ],
-      nutrition: {
-        calories: 250,
-        protein: 5,
-        fat: 8,
-        carbs: 40,
-        fiber: 2,
-      },
-    },
-    chicken: {
-      title: 'సింపుల్ గ్రిల్డ్ చికెన్',
-      description: 'బంగారు, క్రిస్పీ బాహ్య భాగంతో సంపూర్ణంగా మసాలా చేసిన గ్రిల్డ్ చికెన్',
-      difficulty: 'సులభం',
-      prepTime: 10,
-      cookTime: 20,
-      estimatedCost: 8,
-      wasteSavings: 3,
-      ingredients: [
-        { name: 'చికెన్', quantity: 500, unit: 'గ్రాములు' },
-        { name: 'ఉప్పు', quantity: 1, unit: 'టీస్పూన్' },
-        { name: 'మిరియాలు', quantity: 0.5, unit: 'టీస్పూన్' },
-        { name: 'నూనె', quantity: 1, unit: 'టేబుల్‌స్పూన్' },
-        { name: 'వెల్లుల్లి పొడి', quantity: 0.5, unit: 'టీస్పూన్' },
-      ],
-      steps: [
-        { stepNumber: 1, instruction: 'అదనపు తేమను తొలగించడానికి కాగితపు టవల్స్‌తో చికెన్‌ను పొడిగా తుడవండి. ఇది మెరుగైన సీర్‌ను సాధించడానికి మరియు ఆవిరిని నివారించడానికి సహాయపడుతుంది.', duration: 2 },
-        { stepNumber: 2, instruction: 'చికెన్ రెండు వైపులా ఉప్పు, మిరియాలు మరియు వెల్లుల్లి పొడితో ఉదారంగా మసాలా చేయండి. మసాలాలు బాగా అతుక్కునేలా మాంసంలోకి రుద్దండి.', duration: 3 },
-        { stepNumber: 3, instruction: 'పెద్ద స్కిల్లెట్ లేదా గ్రిల్ పాన్‌లో 1 టేబుల్‌స్పూన్ నూనెను మధ్యం వేడిపై వేడి చేయండి. నూనె మెరుస్తున్నప్పుడు కానీ పొగ రాకుండా ఉండే వరకు పాన్‌ను సుమారు 2 నిమిషాలు వేడి చేయనివ్వండి.', duration: 2 },
-        { stepNumber: 4, instruction: 'చికెన్‌ను జాగ్రత్తగా వేడి పాన్‌లో ఉంచండి. దిగువ భాగం బంగారు-గోధుమ రంగు క్రస్ట్‌ను అభివృద్ధి చేసే వరకు 8-10 నిమిషాలు కదలకుండా ఉడికించండి.', duration: 10 },
-        { stepNumber: 5, instruction: 'చికెన్‌ను తిప్పండి మరియు మరో 8-10 నిమిషాలు మరో వైపు ఉడికించండి. పూర్తిగా ఉడికినప్పుడు అంతర్గత ఉష్ణోగ్రత 165°F (74°C) చేరుకోవాలి.', duration: 10 },
-        { stepNumber: 6, instruction: 'వేడి నుండి తొలగించి, చికెన్‌ను కట్టింగ్ బోర్డ్‌పై 5 నిమిషాలు విశ్రాంతి తీసుకోనివ్వండి. ఇది రసాలను పునఃపంపిణీ చేయడానికి అనుమతిస్తుంది, మాంసాన్ని తేమగా మరియు మృదువుగా ఉంచుతుంది.', duration: 5 },
-        { stepNumber: 7, instruction: 'ముక్కలు చేసి మీకు ఇష్టమైన సైడ్‌లతో సర్వ్ చేయండి. చికెన్ లోపల రసవంతంగా మరియు బయట క్రిస్పీ, రుచికరమైన బాహ్యంతో ఉండాలి.', duration: 2 },
-      ],
-      nutrition: {
-        calories: 300,
-        protein: 35,
-        fat: 15,
-        carbs: 2,
-        fiber: 0,
-      },
-    },
-    eggs: {
-      title: 'క్లాసిక్ స్క్రాంబుల్డ్ గుడ్లు',
-      description: 'పరిపూర్ణతకు వండిన మెత్తని, క్రీమీ స్క్రాంబుల్డ్ గుడ్లు',
-      difficulty: 'సులభం',
-      prepTime: 2,
-      cookTime: 5,
-      estimatedCost: 3,
-      wasteSavings: 1,
-      ingredients: [
-        { name: 'గుడ్లు', quantity: 3, unit: 'ముక్కలు' },
-        { name: 'వెన్న', quantity: 1, unit: 'టేబుల్‌స్పూన్' },
-        { name: 'పాలు', quantity: 1, unit: 'టేబుల్‌స్పూన్' },
-        { name: 'ఉప్పు', quantity: 0.5, unit: 'టీస్పూన్' },
-        { name: 'మిరియాలు', quantity: 0.25, unit: 'టీస్పూన్' },
-      ],
-      steps: [
-        { stepNumber: 1, instruction: 'గుడ్లను మధ్యం గిన్నెలో పగులగొట్టండి. పాలు, ఉప్పు మరియు మిరియాలు జోడించండి. మిశ్రమం బాగా కలిసిపోయి కొంచెం నురుగుగా మారే వరకు సుమారు 30 సెకన్ల పాటు బలంగా కొట్టండి.', duration: 2 },
-        { stepNumber: 2, instruction: 'నాన్-స్టిక్ పాన్‌ను మధ్యం-తక్కువ వేడిపై వేడి చేయండి. వెన్న జోడించి పూర్తిగా కరిగేలా చేయండి, పాన్ దిగువ భాగం మొత్తాన్ని పూత పూయడానికి తిప్పండి. వెన్న నురుగు కావాలి కానీ గోధుమ రంగులోకి మారకూడదు.', duration: 1 },
-        { stepNumber: 3, instruction: 'గుడ్డు మిశ్రమాన్ని పాన్‌లోకి పోయండి. అంచులు సెట్ అవ్వడం ప్రారంభించే వరకు సుమారు 20 సెకన్ల పాటు కదలకుండా కూర్చోనివ్వండి.', duration: 1 },
-        { stepNumber: 4, instruction: 'సిలికాన్ స్పాటులా ఉపయోగించి, గుడ్లను అంచుల నుండి మధ్యలోకి మెల్లగా నెట్టండి, ఉడకని గుడ్డు అంచులకు ప్రవహించేలా పాన్‌ను వంచండి. ఈ ప్రక్రియను 3-4 నిమిషాలు కొనసాగించండి.', duration: 4 },
-        { stepNumber: 5, instruction: 'గుడ్లు ఎక్కువగా సెట్ అయినప్పుడు కానీ ఇంకా కొంచెం తడిగా మరియు మెరుస్తున్నప్పుడు, వెంటనే వేడి నుండి తొలగించండి. అవశేష వేడి వాటిని క్రీమీ పరిపూర్ణతకు ఉడికించడం ముగిస్తుంది.', duration: 1 },
-        { stepNumber: 6, instruction: 'ప్లేట్‌కు బదిలీ చేసి వెంటనే సర్వ్ చేయండి. గుడ్లు మృదువుగా, మెత్తగా మరియు క్రీమీగా ఉండాలి - పొడిగా లేదా రబ్బరుగా కాదు. కావాలనుకుంటే తాజా మూలికలతో అలంకరించండి.', duration: 1 },
-      ],
-      nutrition: {
-        calories: 220,
-        protein: 18,
-        fat: 16,
-        carbs: 2,
-        fiber: 0,
-      },
-    },
-  },
-};
+
 
 const getAllRecipes = async (req, res, next) => {
   try {
@@ -228,6 +38,353 @@ const getRecipeById = async (req, res, next) => {
   }
 };
 
+// ---------------------------------------------------------------------------
+// Dynamic fallback recipe generator — used only when the AI is unavailable.
+// Intelligently handles ingredient compatibility and produces varied output.
+// ---------------------------------------------------------------------------
+const buildFallbackRecipe = (ingredients, healthMode, servings, language) => {
+  const lang = language === 'te' ? 'te' : 'en';
+  const rand = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+  // --- STEP 1: Categorize ingredients and detect incompatible combinations ---
+  const categorizeIngredient = (ing) => {
+    const lower = ing.toLowerCase();
+    
+    // Proteins
+    if (/chicken|mutton|lamb|beef|pork|fish|prawn|shrimp|egg|paneer|tofu/.test(lower))
+      return 'protein';
+    
+    // Dairy
+    if (/milk|yogurt|curd|cream|butter|cheese|ghee/.test(lower))
+      return 'dairy';
+    
+    // Fruits
+    if (/banana|mango|apple|orange|grape|berry|strawberry|papaya|guava|pineapple|watermelon/.test(lower))
+      return 'fruit';
+    
+    // Grains
+    if (/rice|wheat|oats|quinoa|barley|flour|roti|bread/.test(lower))
+      return 'grain';
+    
+    // Legumes
+    if (/dal|lentil|chickpea|bean|pea/.test(lower))
+      return 'legume';
+    
+    // Default to vegetable
+    return 'vegetable';
+  };
+
+  const categorized = ingredients.map(ing => ({
+    name: ing,
+    category: categorizeIngredient(ing)
+  }));
+
+  // Detect incompatible groups
+  const hasProtein = categorized.some(i => i.category === 'protein');
+  const hasFruit   = categorized.some(i => i.category === 'fruit');
+  const hasDairy   = categorized.some(i => i.category === 'dairy');
+
+  let selectedIngredients;
+  let recipeType;
+
+  // Compatibility rules: fruit/dairy + protein = incompatible
+  if ((hasFruit || hasDairy) && hasProtein) {
+    // Count group sizes
+    const fruitDairyCount = categorized.filter(i => i.category === 'fruit' || i.category === 'dairy').length;
+    const proteinCount    = categorized.filter(i => i.category === 'protein').length;
+
+    // Pick the larger group
+    if (fruitDairyCount >= proteinCount) {
+      // Use fruit/dairy group → make shake/smoothie/dessert
+      selectedIngredients = categorized.filter(i => i.category !== 'protein');
+      recipeType = 'raw'; // no-cook preparation
+    } else {
+      // Use protein group → make cooked dish
+      selectedIngredients = categorized.filter(i => i.category !== 'fruit' && i.category !== 'dairy');
+      recipeType = 'cooked';
+    }
+  } else {
+    // All compatible → use everything
+    selectedIngredients = categorized;
+    recipeType = (hasFruit || hasDairy) ? 'raw' : 'cooked';
+  }
+
+  const finalIngredients = selectedIngredients.map(i => i.name);
+
+  // --- STEP 2: Generate recipe based on type (raw vs cooked) ---
+  if (recipeType === 'raw') {
+    return buildRawRecipe(finalIngredients, healthMode, servings, lang, rand);
+  } else {
+    return buildCookedRecipe(finalIngredients, healthMode, servings, lang, rand);
+  }
+};
+
+// --- Build a no-cook recipe (shake, smoothie, lassi, salad) ---
+const buildRawRecipe = (ingredients, healthMode, servings, lang, rand) => {
+  const mainIngredient = ingredients[0];
+  
+  const rawTypes = {
+    en: ['Smoothie', 'Shake', 'Lassi', 'Drink', 'Bowl'],
+    te: ['స్మూతీ', 'షేక్', 'లస్సీ', 'డ్రింక్', 'బౌల్']
+  };
+
+  const titlePrefixes = {
+    en: ['Refreshing', 'Creamy', 'Chilled', 'Healthy', 'Quick'],
+    te: ['తాజా', 'క్రీమీ', 'చల్లని', 'ఆరోగ్యకరమైన', 'త్వరగా']
+  };
+
+  const rawType = rand(rawTypes[lang]);
+  const prefix  = rand(titlePrefixes[lang]);
+
+  const title = lang === 'te'
+    ? `${prefix} ${mainIngredient} ${rawType}`
+    : `${prefix} ${mainIngredient} ${rawType}`;
+
+  const description = lang === 'te'
+    ? `${ingredients.join(', ')} తో తయారు చేసిన పోషకమైన ${rawType}. వేడి చేయకుండా సిద్ధం.`
+    : `A nutritious ${rawType.toLowerCase()} made with ${ingredients.join(', ')}. No cooking required.`;
+
+  const baseIngredients = ingredients.map((ing, idx) => ({
+    name: ing,
+    quantity: idx === 0 ? 1 : 0.5,
+    unit: lang === 'te' ? 'కప్పు' : 'cup'
+  }));
+
+  const extraIngredients = [
+    { name: lang === 'te' ? 'ఐస్ క్యూబ్స్' : 'ice cubes', quantity: 4, unit: lang === 'te' ? 'ముక్కలు' : 'pieces' },
+    { name: lang === 'te' ? 'తేనె' : 'honey', quantity: 1, unit: lang === 'te' ? 'టేబుల్స్పూన్' : 'tbsp' }
+  ];
+
+  const steps = [
+    {
+      stepNumber: 1,
+      instruction: lang === 'te'
+        ? `అన్ని తాజా పదార్థాలను చల్లని ప్రవహించే నీటి కింద బాగా కడిగి శుభ్రం చేయండి. బ్లెండింగ్ సులభంగా మరియు సమానంగా అవ్వడానికి ముక్కలను సమానమైన చిన్న సైజులో కట్ చేసుకోండి. ప్రారంభించడానికి ముందు మీ బ్లెండర్ జార్ పూర్తిగా శుభ్రంగా, పొడిగా మరియు మునుపటి వాసనలు లేకుండా ఉందో లేదో సరిచూసుకోండి.`
+        : `Begin by thoroughly washing all fresh ingredients under cold running water to remove any surface impurities or dirt. Slice or chop the ingredients (especially fruits like bananas, mangoes, or apples) into uniform 1-inch pieces. Ensuring they are small and uniform prevents motor strain on your blender and yields an exceptionally smooth texture. Confirm that your blender jar is clean, odor-free, and securely attached to the motor base.`,
+      duration: 3
+    },
+    {
+      stepNumber: 2,
+      instruction: lang === 'te'
+        ? `బ్లెండర్లో ${ingredients.join(', ')} వేయండి. ఐస్ క్యూబ్స్ మరియు తేనె జోడించండి. తీపి కోసం సహజ తేనెను ఉపయోగించడం వల్ల రుచి అద్భుతంగా ఉంటుంది మరియు పోషకాలు సమృద్ధిగా లభిస్తాయి.`
+        : `Place the heavier or frozen ingredients (like ice cubes) at the bottom, followed by the chopped ${ingredients.join(', ')}. Drizzle the liquid honey or pure jaggery syrup evenly over the ingredients for a natural, rich sweetness. Keeping liquid and soft ingredients near the blades ensures that they create a vortex, pulling everything down for an even blend without pockets of unblended food.`,
+      duration: 1
+    },
+    {
+      stepNumber: 3,
+      instruction: lang === 'te'
+        ? `అధిక వేగంలో 1-2 నిమిషాలు బ్లెండ్ చేయండి మృదువైన, క్రీమీ స్థిరత్వం వచ్చే వరకు. బ్లెండర్ తిరగడం కష్టమైతే, అవసరమైతే కొంచెం చల్లటి నీరు లేదా పాలు జోడించండి.`
+        : `Secure the blender lid firmly and start blending on low speed for 10 seconds to break down the larger pieces. Gradually increase the speed to high and blend continuously for 1 to 2 minutes until the mixture turns fully liquefied and velvet-smooth. If the mixture is too thick to blend properly, pause the blender and add a splash of cold water or milk to adjust the consistency, then blend again.`,
+      duration: 2
+    },
+    {
+      stepNumber: 4,
+      instruction: lang === 'te'
+        ? `గ్లాసులో పోసి వెంటనే వడ్డించండి. చల్లగా సర్వ్ చేయడం వల్ల రుచి రెట్టింపు అవుతుంది. ఈ పరిమాణం ${servings} మందికి సరిపోతుంది.`
+        : `Turn off the blender and carefully pour the luscious, creamy beverage into chilled tall serving glasses. Serve this instantly while it remains icy cold to experience the vibrant, refreshing flavors of ${mainIngredient} at their best. This preparation serves ${servings} people perfectly, making it an excellent nutritious treat.`,
+      duration: 1
+    }
+  ];
+
+  return {
+    title,
+    description,
+    difficulty: 'Easy',
+    prepTime: 5,
+    cookTime: 0,
+    estimatedCost: Math.floor(20 + ingredients.length * 10),
+    wasteSavings: Math.floor(5 + Math.random() * 10),
+    ingredients: [...baseIngredients, ...extraIngredients],
+    steps,
+    nutrition: { calories: 150, protein: 5, fat: 2, carbs: 32, fiber: 3 }
+  };
+};
+
+// --- Build a cooked recipe (curry, stir-fry, etc.) ---
+const buildCookedRecipe = (ingredients, healthMode, servings, lang, rand) => {
+  const mainIngredient = ingredients[0];
+
+  const cookingMethods = {
+    en: [
+      { method: 'Stir-fry', oil: 'sesame oil',  verb: 'toss',            heatLevel: 'high'   },
+      { method: 'Sauté',    oil: 'olive oil',   verb: 'stir',            heatLevel: 'medium' },
+      { method: 'Curry',    oil: 'ghee',        verb: 'simmer',          heatLevel: 'medium' },
+      { method: 'Roast',    oil: 'coconut oil', verb: 'bake',            heatLevel: 'high'   },
+      { method: 'Tadka',    oil: 'mustard oil', verb: 'temper',          heatLevel: 'medium' },
+    ],
+    te: [
+      { method: 'వేయించడం',  oil: 'నువ్వుల నూనె', verb: 'కలపండి',        heatLevel: 'అధికం'  },
+      { method: 'వడకట్టడం', oil: 'ఆలివ్ నూనె',   verb: 'కదిలించండి',    heatLevel: 'మధ్యం'  },
+      { method: 'కర్రీ',    oil: 'నెయ్యి',       verb: 'మరగించండి',     heatLevel: 'మధ్యం'  },
+      { method: 'వేపుడు',   oil: 'కొబ్బరి నూనె', verb: 'వండండి',        heatLevel: 'అధికం'  },
+      { method: 'తడక',      oil: 'ఆవాల నూనె',    verb: 'పోపు పెట్టండి', heatLevel: 'మధ్యం'  },
+    ],
+  };
+
+  const spiceProfiles = {
+    en: [
+      { name: 'South Indian',   spices: ['mustard seeds', 'curry leaves', 'turmeric', 'red chilli'] },
+      { name: 'North Indian',   spices: ['cumin', 'garam masala', 'coriander powder', 'ginger-garlic paste'] },
+      { name: 'Andhra Style',   spices: ['green chilli', 'tamarind', 'turmeric', 'chilli powder'] },
+      { name: 'Simple & Light', spices: ['salt', 'pepper', 'cumin', 'lemon juice'] },
+      { name: 'Aromatic',       spices: ['cardamom', 'cinnamon', 'cloves', 'bay leaf'] },
+    ],
+    te: [
+      { name: 'దక్షిణ భారత',   spices: ['ఆవాలు', 'కరివేపాకు', 'పసుపు', 'ఎర్ర మిర్చి'] },
+      { name: 'ఉత్తర భారత',   spices: ['జీలక్రర', 'గరం మసాలా', 'కొత్తిమీర పొడి', 'అల్లం-వెల్లుల్లి పేస్ట్'] },
+      { name: 'ఆంధ్ర స్టైల్', spices: ['పచ్చిమిర్చి', 'చింతపండు', 'పసుపు', 'మిర్చి పొడి'] },
+      { name: 'తేలికైన వంటకం', spices: ['ఉప్పు', 'మిరియాలు', 'జీలక్రర', 'నిమ్మరసం'] },
+      { name: 'సువాసన',        spices: ['యాలకులు', 'దాల్చిన చెక్క', 'లవంగాలు', 'అల్లం'] },
+    ],
+  };
+
+  const titlePrefixes = {
+    en: ['Quick', 'Spicy', 'Homestyle', 'Classic', 'Easy', 'Rustic', 'Hearty', 'Smoky'],
+    te: ['త్వరగా', 'కారంగా', 'ఇంటి స్టైల్', 'క్లాసిక్', 'సులభమైన', 'ఆరోగ్యకరమైన'],
+  };
+
+  const chosenMethod   = rand(cookingMethods[lang]);
+  const chosenSpices   = rand(spiceProfiles[lang]);
+  const titlePrefix    = rand(titlePrefixes[lang]);
+
+  const healthAdditions = {
+    Keto:        { en: [{ name: 'butter',     quantity: 2,   unit: 'tbsp'   }, { name: 'cheese',     quantity: 30,  unit: 'g'    }],
+                   te: [{ name: 'వెన్న',       quantity: 2,   unit: 'టేబుల్స్పూన్లు' }, { name: 'చీజ్',       quantity: 30,  unit: 'గ్రాములు' }] },
+    Diabetic:    { en: [{ name: 'olive oil',  quantity: 1,   unit: 'tbsp'   }, { name: 'garlic',     quantity: 2,   unit: 'cloves'}],
+                   te: [{ name: 'ఆలివ్ నూనె', quantity: 1,   unit: 'టేబుల్స్పూన్'  }, { name: 'వెల్లుల్లి', quantity: 2,   unit: 'రెబ్బలు'  }] },
+    HighProtein: { en: [{ name: 'lentils',    quantity: 0.5, unit: 'cup'    }, { name: 'chickpeas',  quantity: 0.5, unit: 'cup'  }],
+                   te: [{ name: 'పెసలు',       quantity: 0.5, unit: 'కప్పు'  }, { name: 'శనగలు',     quantity: 0.5, unit: 'కప్పు' }] },
+    WeightLoss:  { en: [{ name: 'lemon juice',quantity: 1,   unit: 'tbsp'   }, { name: 'spinach',    quantity: 1,   unit: 'cup'  }],
+                   te: [{ name: 'నిమ్మరసం',   quantity: 1,   unit: 'టేబుల్స్పూన్'  }, { name: 'పాలకూర',    quantity: 1,   unit: 'కప్పు' }] },
+    Normal:      { en: [], te: [] },
+  };
+
+  const baseIngredients = ingredients.map((ing, idx) => ({
+    name: ing,
+    quantity: idx === 0 ? (Math.floor(Math.random() * 2) + 1) * 100 : Math.floor(Math.random() * 3) + 1,
+    unit: idx === 0 ? (lang === 'te' ? 'గ్రాములు' : 'grams') : (lang === 'te' ? 'ముక్కలు' : 'pieces'),
+  }));
+
+  const spiceIngredients = chosenSpices.spices.map((s) => ({
+    name: s, quantity: Math.random() > 0.5 ? 1 : 0.5, unit: lang === 'te' ? 'టీస్పూన్' : 'tsp',
+  }));
+
+  const oilIngredient    = [{ name: chosenMethod.oil, quantity: 2, unit: lang === 'te' ? 'టేబుల్స్పూన్లు' : 'tbsp' }];
+  const extraIngredients = (healthAdditions[healthMode] || healthAdditions.Normal)[lang];
+  const allIngredients   = [...baseIngredients, ...oilIngredient, ...spiceIngredients, ...extraIngredients];
+
+  const steps = [];
+  let n = 1;
+
+  const prepDetails = {
+    en: [
+      `Begin by thoroughly washing all ingredients under cold running water. Carefully chop them into uniform, bite-sized pieces so they cook evenly throughout the process. Gently pat dry with a clean kitchen towel to remove excess surface moisture, which prevents steaming and ensures a beautiful, golden-brown sear.`,
+      `Rinse the ${mainIngredient} and associated vegetables thoroughly under running water. Slice them into clean, equal-sized pieces to ensure consistent heat absorption during cooking. Keep each ingredient separated on a clean prep board so they can be added at their respective steps.`,
+      `Prepare all ingredients before lighting the stove (mise en place). Finely chop the ${mainIngredient}, mince the aromatics like garlic and ginger, and measure out your dry spices into a small bowl. This prep work ensures you cook stress-free and prevents spices from burning while you chop.`,
+    ],
+    te: [
+      `అన్ని పదార్థాలను చల్లని నీటిలో కడిగి శుభ్రం చేయండి. సమానంగా వండటానికి వాటన్నింటినీ చిన్న సమాన ముక్కలుగా కట్ చేసుకోండి. కిచెన్ టవల్తో పొడిగా తుడవండి, ఇది వంట చేసేటప్పుడు అదనపు తేమను నివారించి అద్భుతమైన రుచిని ఇస్తుంది.`,
+      `${mainIngredient} ను బాగా కడిగి ముక్కలుగా కోయండి. సమాన ముక్కలు కావడం వల్ల ఉష్ణోగ్రత సమానంగా వ్యాపించి ప్రతి ముక్కా చక్కగా ఉడుకుతుంది. వండే ముందు అన్ని సిద్ధం చేసుకోండి.`,
+      `వండటం ప్రారంభించే ముందు అన్ని పదార్థాలు సిద్ధం చేయండి. ${mainIngredient} ను ముక్కలుగా కోసి, అల్లం-వెల్లుల్లి పేస్ట్ సిద్ధం చేసుకుని, మసాలాలను ఒక గిన్నెలో కొలిచి పెట్టుకోండి. ఇది వండేటప్పుడు సమయాన్ని ఆదా చేస్తుంది.`,
+    ],
+  };
+  steps.push({ stepNumber: n++, instruction: rand(prepDetails[lang]), duration: 5 });
+
+  const heatSteps = {
+    en: [
+      `Heat ${chosenMethod.oil} in a wide, heavy-bottomed pan over ${chosenMethod.heatLevel} heat. Allow the oil to heat until it shimmers and moves fluidly across the pan. A faint, gentle heat rising from the surface indicates it is ready — adding ingredients to cold oil will make them greasy and soggy.`,
+      `Warm the ${chosenMethod.oil} in a solid, heavy pan. Let it reach the optimal temperature gradually; this forms the crucial flavorful foundation of the entire dish, sealing in the juices of your ingredients as soon as they hit the pan.`,
+    ],
+    te: [
+      `ఒక వెడల్పైన పాన్లో ${chosenMethod.oil} వేడి చేయండి. నూనె మెరిసే వరకు వేచి ఉండండి. నూనె సరైన వేడికి రావడం వల్ల పదార్థాలు పాన్ కు అంటుకోకుండా త్వరగా వేగుతాయి.`,
+      `భారమైన అడుగున్న పాన్లో ${chosenMethod.oil} వేడి చేయండి. ఏదైనా వేసే ముందు సరైన ఉష్ణోగ్రతకు చేరుకోనివ్వండి, ఇది వంటకానికి సరైన పునాదిని ఇస్తుంది.`,
+    ],
+  };
+  steps.push({ stepNumber: n++, instruction: rand(heatSteps[lang]), duration: 2 });
+
+  const temperSteps = {
+    en: [
+      `Carefully add the whole ${chosenSpices.spices.slice(0, 2).join(' and ')} into the shimmering oil. Let them sizzle and splutter for 30 seconds to bloom their volatile oils and infuse the cooking fat with a deep, aromatic base. Watch closely so they do not darken or burn, which would turn the dish bitter.`,
+      `Toss in ${chosenSpices.spices.slice(0, 2).join(', ')} into the pan. Stir constantly for 20 to 30 seconds until a rich, roasted fragrance fills your kitchen, signaling that the spices have opened up and are ready for the main ingredients.`,
+    ],
+    te: [
+      `వేడి నూనెలో ${chosenSpices.spices.slice(0, 2).join(' మరియు ')} వేయండి. 30 సెకన్లు చిటపటలాడేలా వదిలివేయండి, ఇది సువాసన నూనెలోకి చేరేలా చేస్తుంది. మసాలాలు మాడిపోకుండా జాగ్రత్తపడండి.`,
+      `${chosenSpices.spices.slice(0, 2).join(', ')} వేసి నిరంతరం కదిలిస్తూ 20–30 సెకన్లు మంచి సువాసన వచ్చే వరకు వేయించండి.`,
+    ],
+  };
+  steps.push({ stepNumber: n++, instruction: rand(temperSteps[lang]), duration: 1 });
+
+  ingredients.forEach((ing) => {
+    const cookVariants = {
+      en: [
+        `Gently slide in the ${ing} and perform a swift ${chosenMethod.verb} over ${chosenMethod.heatLevel} heat for ${4 + Math.floor(Math.random() * 4)} minutes. Keep the food moving to prevent burning, cooking until they develop a beautiful golden exterior and are tender inside.`,
+        `Introduce the ${ing} to the seasoned pan. Let them cook undisturbed for 2 minutes to develop a savory seared crust, then ${chosenMethod.verb} every minute for another ${3 + Math.floor(Math.random() * 3)} minutes until cooked through and tender.`,
+        `Add the ${ing} directly to the pan. ${chosenMethod.verb} continuously with a spatula to ensure nothing sticks to the bottom. Cook for ${5 + Math.floor(Math.random() * 4)} minutes until the raw edge of the ingredient is completely replaced by cooked sweetness.`,
+      ],
+      te: [
+        `${ing} వేసి ${chosenMethod.heatLevel} వేడిపై ${4 + Math.floor(Math.random() * 4)} నిమిషాలు ${chosenMethod.verb}. ముక్కలు ప్రతి వైపూ సమానంగా వేగేలా కలపండి.`,
+        `${ing} పాన్లో వేయండి. 2 నిమిషాలు కదలించకుండా వదలండి, తర్వాత ${3 + Math.floor(Math.random() * 3)} నిమిషాలు ${chosenMethod.verb}.`,
+        `${ing} వేసి అంటుకోకుండా నిరంతరం ${chosenMethod.verb}. పచ్చి వాసన పూర్తిగా పోయే వరకు ${5 + Math.floor(Math.random() * 4)} నిమిషాలు వండండి.`,
+      ],
+    };
+    steps.push({ stepNumber: n++, instruction: rand(cookVariants[lang]), duration: 5 + Math.floor(Math.random() * 4) });
+  });
+
+  const finalSpiceSteps = {
+    en: [
+      `Sprinkle the ground ${chosenSpices.spices.slice(2).join(', ')} evenly over the cooking ingredients. Turn down the heat slightly and toss well to coat every single piece with the spice layer. Sauté for 1 more minute to cook off the raw spice taste, then sample a small piece to adjust the salt to your liking.`,
+      `Reduce the flame and stir in the remaining dry spices: ${chosenSpices.spices.slice(2).join(', ')}. Mix thoroughly for 1 minute, letting the ambient heat blend the spices into the main ingredients without scorching them.`,
+    ],
+    te: [
+      `${chosenSpices.spices.slice(2).join(', ')} వేసి అన్నీ సమానంగా కలపండి. 1 నిమిషం తక్కువ మంటపై వండి ఉప్పు సరిచూసుకోండి.`,
+      `మిగిలిన మసాలాలు వేయండి: ${chosenSpices.spices.slice(2).join(', ')}. ప్రతి ముక్కకూ మసాలా అంటుకునేలా బాగా కలపండి.`,
+    ],
+  };
+  steps.push({ stepNumber: n++, instruction: rand(finalSpiceSteps[lang]), duration: 2 });
+
+  const serveSteps = {
+    en: [
+      `Remove the pan from the heat. Allow the dish to rest covered for 2 minutes; this crucial step lets the residual steam complete the cooking process gently. Garnish with fresh, vibrant coriander leaves and serve warm to ${servings} guests.`,
+      `Turn off the heat completely. Squeeze a teaspoon of fresh, zesty lemon juice across the top to brighten the overall flavor profile. Stir once and plate immediately for ${servings} servings.`,
+      `Transfer the hot dish into a pre-warmed serving bowl. Drizzle a tiny teardrop of fresh ${chosenMethod.oil} or ghee and sprinkle with fresh green herbs for a spectacular presentation. Best enjoyed while hot. Serves ${servings}.`,
+    ],
+    te: [
+      `వేడి నుండి తొలగించండి. 2 నిమిషాలు మూతపెట్టి ఉంచండి, ఇది మిగిలిన వేడితో ముక్కను మరింత మృదువుగా చేస్తుంది. వేడిగా కొత్తిమీరతో అలంకరించి ${servings} మందికి వడ్డించండి.`,
+      `వేడి పూర్తిగా ఆపండి. నిమ్మరసం పిండండి, ఇది తాజాదనాన్ని మరియు అద్భుతమైన రుచిని ఇస్తుంది. వెంటనే ${servings} మందికి వడ్డించండి.`,
+    ],
+  };
+  steps.push({ stepNumber: n++, instruction: rand(serveSteps[lang]), duration: 2 });
+
+  const nutritionMods = {
+    Keto:        { calories: 320, protein: 18, fat: 26, carbs: 6,  fiber: 2 },
+    Diabetic:    { calories: 180, protein: 14, fat: 6,  carbs: 20, fiber: 7 },
+    HighProtein: { calories: 280, protein: 30, fat: 8,  carbs: 22, fiber: 5 },
+    WeightLoss:  { calories: 160, protein: 14, fat: 4,  carbs: 18, fiber: 6 },
+    Normal:      { calories: 220, protein: 12, fat: 8,  carbs: 28, fiber: 4 },
+  };
+
+  const title = lang === 'te'
+    ? `${titlePrefix} ${mainIngredient} ${chosenMethod.method}`
+    : `${titlePrefix} ${chosenMethod.method} ${mainIngredient}${ingredients.length > 1 ? ' & ' + ingredients.slice(1).join(', ') : ''}`;
+
+  const description = lang === 'te'
+    ? `${chosenSpices.name} మసాలాలతో ${mainIngredient} ను ఉపయోగించి వండిన రుచికరమైన వంటకం.${healthMode !== 'Normal' ? ' ' + healthMode + ' డైట్ కోసం అనుకూలంగా మార్చబడింది.' : ''}`
+    : `A ${chosenSpices.name} ${chosenMethod.method.toLowerCase()} using ${ingredients.join(', ')}.${healthMode !== 'Normal' ? ` Adapted for a ${healthMode} diet.` : ' Simple, flavourful, and ready in under 30 minutes.'}`;
+
+  return {
+    title,
+    description,
+    difficulty: ingredients.length <= 2 ? 'Easy' : ingredients.length <= 4 ? 'Medium' : 'Hard',
+    prepTime:       5 + ingredients.length * 2,
+    cookTime:       8 + ingredients.length * 4,
+    estimatedCost:  Math.floor(30 + ingredients.length * 15 + Math.random() * 20),
+    wasteSavings:   Math.floor(5  + Math.random() * 15),
+    ingredients:    allIngredients,
+    steps,
+    nutrition:      nutritionMods[healthMode] || nutritionMods.Normal,
+  };
+};
+
 const generateRecipe = async (req, res, next) => {
   try {
     const { ingredients, healthMode = 'Normal', servings = 4, language = 'en' } = req.body;
@@ -243,245 +400,12 @@ const generateRecipe = async (req, res, next) => {
       generatedRecipe = await aiService.generateRecipe(
         ingredients,
         healthMode,
-        servings
+        servings,
+        language
       );
     } catch (aiError) {
-      console.log('AI service failed, using fallback recipe:', aiError.message);
-
-      // Use fallback recipe based on first ingredient
-      const firstIngredient = ingredients[0].toLowerCase();
-      const lang = language === 'te' ? 'te' : 'en'; const recipes = fallbackRecipes[lang]; let template = recipes.rice; // default
-
-      if (firstIngredient.includes('chicken')) {
-        template = recipes.chicken;
-      } else if (firstIngredient.includes('egg')) {
-        template = recipes.eggs;
-      } else if (firstIngredient.includes('rice')) {
-        template = recipes.rice;
-      }
-
-      // Create dynamic ingredients list from ALL user inputs
-      const dynamicIngredients = ingredients.map((ing, idx) => ({
-        name: ing,
-        quantity: idx === 0 ? 2 : 1,
-        unit: idx === 0 ? (lang === 'te' ? 'కప్పులు' : 'cups') : (lang === 'te' ? 'ముక్కలు' : 'pieces')
-      }));
-
-      // Add health mode-specific ingredients and seasonings
-      switch (healthMode) {
-        case 'Keto':
-          // Keto: High fat, low carb
-          dynamicIngredients.push(
-            { name: lang === 'te' ? 'వెన్న' : 'butter', quantity: 2, unit: lang === 'te' ? 'టేబుల్‌స్పూన్లు' : 'tablespoons' },
-            { name: lang === 'te' ? 'చీజ్' : 'cheese', quantity: 50, unit: lang === 'te' ? 'గ్రాములు' : 'grams' },
-            { name: lang === 'te' ? 'ఉప్పు' : 'salt', quantity: 1, unit: lang === 'te' ? 'టీస్పూన్' : 'teaspoon' },
-            { name: lang === 'te' ? 'నల్ల మిరియాలు' : 'black pepper', quantity: 0.5, unit: lang === 'te' ? 'టీస్పూన్' : 'teaspoon' }
-          );
-          break;
-
-        case 'Diabetic':
-          // Diabetic: Low sugar, high fiber
-          dynamicIngredients.push(
-            { name: lang === 'te' ? 'ఆలివ్ నూనె' : 'olive oil', quantity: 1, unit: lang === 'te' ? 'టేబుల్‌స్పూన్' : 'tablespoon' },
-            { name: lang === 'te' ? 'వెల్లుల్లి' : 'garlic', quantity: 2, unit: lang === 'te' ? 'రెబ్బలు' : 'cloves' },
-            { name: lang === 'te' ? 'ఉప్పు' : 'salt', quantity: 0.5, unit: lang === 'te' ? 'టీస్పూన్' : 'teaspoon' },
-            { name: lang === 'te' ? 'పచ్చి కూరలు' : 'fresh herbs', quantity: 1, unit: lang === 'te' ? 'టేబుల్‌స్పూన్' : 'tablespoon' }
-          );
-          break;
-
-        case 'HighProtein':
-          // High Protein: Extra protein sources
-          dynamicIngredients.push(
-            { name: lang === 'te' ? 'నూనె' : 'oil', quantity: 1.5, unit: lang === 'te' ? 'టేబుల్‌స్పూన్లు' : 'tablespoons' },
-            { name: lang === 'te' ? 'పెసలు' : 'lentils', quantity: 0.5, unit: lang === 'te' ? 'కప్పు' : 'cup' },
-            { name: lang === 'te' ? 'ఉప్పు' : 'salt', quantity: 1, unit: lang === 'te' ? 'టీస్పూన్' : 'teaspoon' },
-            { name: lang === 'te' ? 'మిరపకాయ పొడి' : 'chili powder', quantity: 0.5, unit: lang === 'te' ? 'టీస్పూన్' : 'teaspoon' }
-          );
-          break;
-
-        case 'WeightLoss':
-          // Weight Loss: Low calorie, high volume
-          dynamicIngredients.push(
-            { name: lang === 'te' ? 'ఆలివ్ నూనె స్ప్రే' : 'olive oil spray', quantity: 3, unit: lang === 'te' ? 'స్ప్రేలు' : 'sprays' },
-            { name: lang === 'te' ? 'కూరగాయలు' : 'vegetables', quantity: 1, unit: lang === 'te' ? 'కప్పు' : 'cup' },
-            { name: lang === 'te' ? 'నిమ్మరసం' : 'lemon juice', quantity: 1, unit: lang === 'te' ? 'టేబుల్‌స్పూన్' : 'tablespoon' },
-            { name: lang === 'te' ? 'ఉప్పు' : 'salt', quantity: 0.5, unit: lang === 'te' ? 'టీస్పూన్' : 'teaspoon' }
-          );
-          break;
-
-        default:
-          // Normal: Basic seasonings
-          dynamicIngredients.push(
-            { name: lang === 'te' ? 'నూనె' : 'oil', quantity: 2, unit: lang === 'te' ? 'టేబుల్‌స్పూన్లు' : 'tablespoons' },
-            { name: lang === 'te' ? 'ఉప్పు' : 'salt', quantity: 1, unit: lang === 'te' ? 'టీస్పూన్' : 'teaspoon' }
-          );
-      }
-
-
-
-      // Create dynamic cooking steps based on ingredients
-      const dynamicSteps = [];
-      let stepNum = 1;
-
-      // Helper function to get ingredient-specific cooking instructions
-      const getIngredientInstructions = (ingredient, lang) => {
-        const ingLower = ingredient.toLowerCase();
-
-        // Rice-specific instructions
-        if (ingLower.includes('rice')) {
-          return {
-            prep: lang === 'te'
-              ? `${ingredient} సిద్ధం చేయడం: మొదట ${ingredient} ను ఒక పెద్ద గిన్నెలో వేయండి. చల్లని నీటిని జోడించి, మీ చేతులతో బియ్యాన్ని మెల్లగా రుద్దండి 30 సెకన్లు. తెల్లని మేఘావృత నీరు వస్తుంది - ఇది స్టార్చ్. ఈ నీరు పారేయండి. ఈ ప్రక్రియను 3-4 సార్లు పునరావృతం చేయండి నీరు స్వచ్ఛంగా మరియు పారదర్శకంగా వచ్చే వరకు. తరువాత, శుభ్రమైన చల్లని నీటిలో ${ingredient} ను 30 నిమిషాలు నానబెట్టండి. ఇది బియ్యం గింజలను మృదువుగా చేస్తుంది మరియు సమానంగా ఉడికేలా చేస్తుంది. నానబెట్టిన తరువాత, నీరు పూర్తిగా తీసేయండి ఒక జల్లెడ ఉపయోగించి.`
-              : `Prepare ${ingredient}: First, place ${ingredient} in a large bowl. Add cold water and gently rub the rice grains with your hands for 30 seconds. You'll see cloudy white water - this is starch. Drain this water completely. Repeat this washing process 3-4 times until the water runs clear and transparent. This removes excess starch and prevents sticky, gummy rice. Next, soak the washed ${ingredient} in fresh cold water for 30 minutes. This softens the grains and ensures even cooking. After soaking, drain the water completely using a strainer. The rice should be moist but not sitting in water.`,
-            cook: lang === 'te'
-              ? `${ingredient} వండటం: నానబెట్టిన మరియు ఎండబెట్టిన ${ingredient} ను పాన్‌లో జోడించండి. ఖచ్చితమైన నీటి నిష్పత్తి చాలా ముఖ్యం: ప్రతి 1 కప్పు బియ్యం కు సరిగ్గా 2 కప్పుల నీరు జోడించండి (1:2 నిష్పత్తి). ఉదాహరణకు, 2 కప్పుల బియ్యం కు 4 కప్పుల నీరు. ఒక చిటికెడు ఉప్పు జోడించండి రుచి కోసం. బియ్యం మరియు నీరు బాగా కలపండి చెక్క గరిటెతో. పాన్‌ను అధిక వేడిపై ఉంచండి మరియు మరుగు వచ్చే వరకు వేడి చేయండి - మీరు పెద్ద బుడగలు చూస్తారు ఉపరితలం మీద. మరుగు వచ్చిన వెంటనే, వేడిని చాలా తక్కువకు తగ్గించండి (అతి తక్కువ సెట్టింగ్). పాన్‌ను గట్టిగా మూత పెట్టండి. 15-18 నిమిషాలు ఉడికించండి కదలించకుండా - మూత తీయకండి! 15 నిమిషాల తరువాత, ఒక గింజ తీసి చూడండి - అది మృదువుగా ఉండాలి మరియు నీరు పూర్తిగా శోషించబడి ఉండాలి. ఇంకా గట్టిగా ఉంటే, మరో 2-3 నిమిషాలు వండండి. పూర్తయినప్పుడు, వేడి నుండి తొలగించి, మూత పెట్టి 5 నిమిషాలు ఆవిరి తీయనివ్వండి. తరువాత ఫోర్క్‌తో మెల్లగా కదిలించండి గింజలను వేరు చేయడానికి.`
-              : `Cook ${ingredient}: Add the soaked and drained ${ingredient} to the pan. The exact water ratio is crucial: add exactly 2 cups of water for every 1 cup of rice (1:2 ratio). For example, if you have 2 cups of rice, add 4 cups of water. Add a pinch of salt for flavor. Stir the rice and water well with a wooden spoon to ensure even distribution. Place the pan on high heat and bring to a full rolling boil - you'll see large bubbles breaking the surface. As soon as it boils, immediately reduce heat to the lowest setting (simmer). Cover the pan tightly with a lid. Cook for 15-18 minutes WITHOUT stirring or lifting the lid - this traps the steam which cooks the rice perfectly. After 15 minutes, test one grain - it should be tender and the water should be completely absorbed. If still firm, cook for another 2-3 minutes. When done, remove from heat and let it steam with the lid on for 5 minutes. This final steaming makes the rice fluffy. Then gently fluff with a fork to separate the grains.`,
-            duration: 18
-          };
-        }
-
-        // Egg-specific instructions
-        if (ingLower.includes('egg')) {
-          return {
-            prep: lang === 'te'
-              ? `${ingredient} పగలగొట్టి ఒక గిన్నెలో వేయండి. చిటికెడు ఉప్పు, మిరియాలు జోడించి బాగా కొట్టండి గాలి రావాలి.`
-              : `Crack ${ingredient} into a bowl. Add a pinch of salt and pepper, beat well until frothy and air is incorporated.`,
-            cook: lang === 'te'
-              ? `కొట్టిన గుడ్లు వేడి పాన్‌లో పోయండి. 30 సెకన్లు ఆగండి, తరువాత మెల్లగా కదిలించండి స్పాటులాతో పెద్ద కర్డ్స్ తయారు చేయడానికి. 3-4 నిమిషాలు వండండి మృదువుగా మరియు కొంచెం తేమగా ఉండే వరకు. ఎక్కువ వండకండి.`
-              : `Pour beaten ${ingredient} into the hot pan. Wait 30 seconds, then gently stir with spatula to form large curds. Cook for 3-4 minutes until soft and slightly moist. Don't overcook.`,
-            duration: 4
-          };
-        }
-
-        // Chicken-specific instructions
-        if (ingLower.includes('chicken')) {
-          return {
-            prep: lang === 'te'
-              ? `${ingredient} చిన్న ముక్కలుగా కట్ చేయండి (1-2 అంగుళాలు). ఉప్పు, మిరియాలు, నిమ్మరసం తో మ్యారినేట్ చేయండి 15 నిమిషాలు. ఇది రుచిని పెంచుతుంది.`
-              : `Cut ${ingredient} into small pieces (1-2 inches). Marinate with salt, pepper, and lemon juice for 15 minutes. This enhances flavor and tenderness.`,
-            cook: lang === 'te'
-              ? `మ్యారినేట్ చేసిన ${ingredient} వేడి పాన్‌లో జోడించండి. ఒక వైపు 4-5 నిమిషాలు వండండి కదలించకుండా బంగారు రంగు వచ్చే వరకు. తిప్పి మరో వైపు 4-5 నిమిషాలు వండండి. చికెన్ పూర్తిగా ఉడికిందో చెక్ చేయండి - లోపల గులాబీ రంగు ఉండకూడదు.`
-              : `Add marinated ${ingredient} to the hot pan. Cook one side for 4-5 minutes without stirring until golden brown. Flip and cook other side for 4-5 minutes. Check chicken is fully cooked - no pink inside.`,
-            duration: 10
-          };
-        }
-
-        // Generic vegetable/ingredient instructions
-        return {
-          prep: lang === 'te'
-            ? `${ingredient} శుభ్రం చేసి, చిన్న ముక్కలుగా కట్ చేయండి సమానంగా ఉండేలా. ఇది సమానంగా వండటానికి సహాయపడుతుంది.`
-            : `Clean and cut ${ingredient} into small, uniform pieces. This helps in even cooking.`,
-          cook: lang === 'te'
-            ? `${ingredient} వేడి పాన్‌లో జోడించండి. తరచుగా కదిలిస్తూ 5-7 నిమిషాలు వండండి మృదువుగా మరియు కొంచెం బంగారు రంగు వచ్చే వరకు.`
-            : `Add ${ingredient} to the hot pan. Cook for 5-7 minutes, stirring frequently, until tender and lightly golden.`,
-          duration: 6
-        };
-      };
-
-      // Step 1: Detailed preparation for each ingredient
-      ingredients.forEach((ing, idx) => {
-        const instructions = getIngredientInstructions(ing, lang);
-        dynamicSteps.push({
-          stepNumber: stepNum++,
-          instruction: instructions.prep,
-          duration: 3
-        });
-      });
-
-      // Step 2: Heat oil/fat based on health mode
-      const oilInstruction = healthMode === 'Keto'
-        ? (lang === 'te' ? 'పెద్ద పాన్‌లో 2 టేబుల్‌స్పూన్ల వెన్న వేడి చేయండి మధ్యం వేడిపై. వెన్న కరిగి నురుగు వచ్చే వరకు వేడి చేయండి కానీ గోధుమ రంగు రాకూడదు.' : 'Heat 2 tablespoons of butter in a large pan over medium heat. Let butter melt and foam but not brown.')
-        : healthMode === 'WeightLoss'
-          ? (lang === 'te' ? 'పాన్‌ను మధ్యం వేడిపై వేడి చేయండి. ఆలివ్ నూనె స్ప్రే 3 సార్లు స్ప్రే చేయండి పాన్ అంతటా సమానంగా.' : 'Heat pan over medium heat. Spray olive oil spray 3 times evenly across the pan surface.')
-          : (lang === 'te' ? 'పెద్ద పాన్ లేదా వోక్‌లో 2 టేబుల్‌స్పూన్ల నూనె వేడి చేయండి మధ్యం-అధిక వేడిపై. నూనె మెరుస్తున్నప్పుడు కానీ పొగ రాకుండా ఉండే వరకు వేడి చేయండి.' : 'Heat 2 tablespoons of oil in a large pan or wok over medium-high heat. Let the oil heat until it shimmers but does not smoke.');
-
-      dynamicSteps.push({
-        stepNumber: stepNum++,
-        instruction: oilInstruction,
-        duration: 2
-      });
-
-      // Step 3: Cook each ingredient with specific techniques
-      ingredients.forEach((ing) => {
-        const instructions = getIngredientInstructions(ing, lang);
-        dynamicSteps.push({
-          stepNumber: stepNum++,
-          instruction: instructions.cook,
-          duration: instructions.duration
-        });
-      });
-
-      // Step 4: Season with details
-      dynamicSteps.push({
-        stepNumber: stepNum++,
-        instruction: lang === 'te'
-          ? '1 టీస్పూన్ ఉప్పు జోడించండి (లేదా రుచికి అనుగుణంగా సర్దుబాటు చేయండి). అన్ని పదార్థాలలో మసాలా సమానంగా పంపిణీ చేయబడేలా బాగా కలపండి. రుచి చూసి అవసరమైతే మరింత ఉప్పు జోడించండి.'
-          : 'Add 1 teaspoon of salt (or adjust to taste). Mix everything thoroughly to ensure the seasoning is evenly distributed. Taste and add more salt if needed. You can also add other spices or herbs at this stage.',
-        duration: 2
-      });
-
-      // Step 5: Final cooking
-      dynamicSteps.push({
-        stepNumber: stepNum++,
-        instruction: lang === 'te'
-          ? 'అన్ని పదార్థాలు బాగా కలిసిపోయేలా మరో 2-3 నిమిషాలు వండండి. రుచులు కలిసిపోవడానికి అనుమతించండి. అన్నీ వేడిగా మరియు బాగా వండినట్లు నిర్ధారించుకోండి.'
-          : 'Continue cooking for another 2-3 minutes, allowing all ingredients to blend together well. Let the flavors meld and ensure everything is hot and thoroughly cooked.',
-        duration: 3
-      });
-
-      // Step 6: Serve with presentation tips
-      dynamicSteps.push({
-        stepNumber: stepNum++,
-        instruction: lang === 'te'
-          ? `వేడి నుండి తొలగించి, సర్వింగ్ డిష్‌కు బదిలీ చేయండి. వేడిగా వెంటనే సర్వ్ చేయండి. అందుబాటులో ఉంటే తాజా మూలికలు లేదా నిమ్మ ముక్కలతో అలంకరించండి. ఈ వంటకం ${servings} మందికి సరిపోతుంది. ఆనందించండి!`
-          : `Remove from heat and transfer to a serving dish. Serve immediately while hot for the best taste. Garnish with fresh herbs or lemon wedges if available. This dish serves ${servings} people. Enjoy!`,
-        duration: 2
-      });
-
-
-
-      // Calculate realistic cooking times based on ingredients
-      const prepTime = 5 + (ingredients.length * 2); // 5 base + 2 min per ingredient
-      const cookTime = 2 + (ingredients.length * 5) + 5; // 2 for oil + 5 per ingredient + 5 for seasoning/final
-
-      // Create health mode-specific descriptions
-      let healthDescription = '';
-      switch (healthMode) {
-        case 'Keto':
-          healthDescription = lang === 'te'
-            ? 'కీటో డైట్ కోసం అధిక కొవ్వు, తక్కువ కార్బోహైడ్రేట్ వంటకం. వెన్న మరియు చీజ్‌తో సమృద్ధిగా.'
-            : 'High-fat, low-carb recipe for Keto diet. Rich with butter and cheese for sustained energy.';
-          break;
-        case 'Diabetic':
-          healthDescription = lang === 'te'
-            ? 'డయాబెటిక్ స్నేహపూర్వక వంటకం. తక్కువ చక్కెర, ఆలివ్ నూనె మరియు వెల్లుల్లితో ఆరోగ్యకరమైనది.'
-            : 'Diabetic-friendly recipe. Low sugar, healthy with olive oil and garlic for better blood sugar control.';
-          break;
-        case 'HighProtein':
-          healthDescription = lang === 'te'
-            ? 'అధిక ప్రోటీన్ వంటకం. పెసలు జోడించి కండరాల పెరుగుదలకు మరియు శక్తికి.'
-            : 'High-protein recipe. Added lentils for muscle growth and sustained energy throughout the day.';
-          break;
-        case 'WeightLoss':
-          healthDescription = lang === 'te'
-            ? 'బరువు తగ్గడానికి తక్కువ కేలరీ వంటకం. కూరగాయలు మరియు నిమ్మరసంతో తేలికైనది.'
-            : 'Low-calorie recipe for weight loss. Light with vegetables and lemon juice for maximum nutrition, minimum calories.';
-          break;
-        default:
-          healthDescription = lang === 'te'
-            ? `${ingredients.join(', ')} ఉపయోగించి త్వరగా మరియు సులభంగా వంటకం`
-            : `A quick and easy recipe using ${ingredients.join(', ')}`;
-      }
-
-      generatedRecipe = {
-        ...template,
-        title: `${healthMode !== 'Normal' ? healthMode + ' ' : ''}${template.title} with ${ingredients.join(', ')}`,
-        description: healthDescription,
-        ingredients: dynamicIngredients,
-        steps: dynamicSteps,
-        prepTime: prepTime,
-        cookTime: cookTime,
-      };
+      console.log('AI service failed, using dynamic fallback:', aiError.message);
+      generatedRecipe = buildFallbackRecipe(ingredients, healthMode, servings, language);
     }
 
     // Save to Realtime Database

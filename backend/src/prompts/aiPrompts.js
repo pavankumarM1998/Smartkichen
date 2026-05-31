@@ -1,20 +1,36 @@
 // Recipe Generation Prompt
-const recipeGenerationPrompt = (ingredients, healthMode = 'Normal', servings = 4) => {
+const recipeGenerationPrompt = (ingredients, healthMode = 'Normal', servings = 4, language = 'en') => {
   return `You are an expert Indian Chef and Culinary Instructor specializing in both traditional cooked meals and modern raw preparations. 
 
-Generate a COMPREHENSIVE recipe using these ingredients: ${ingredients.join(', ')}.
+Generate a COMPREHENSIVE, HIGHLY DETAILED recipe using these ingredients: ${ingredients.join(', ')}.
 
 CONTEXT & STYLE:
 1. CUISINE: Default to Indian culinary styles, flavors, and techniques (e.g., using cardamom, saffron, chaat masala, or cumin where appropriate).
 2. INTELLIGENT PREPARATION: Analyze the ingredients carefully. If the combination (e.g., banana + milk, or fruit + yogurt) is logically suited for a RAW preparation (Shakes, Lassis, Smoothies, Chaats, Salads), do NOT include cooking or heating steps like 'heating oil' or 'searing'.
 3. ACCURACY: Ensure the cooking logic is sound. Do not suggest cooking/heating for fresh fruits unless it is a specific traditional Indian dessert (like Banana Bhajji or Halwa). If it's a shake, focus on blending and chilling.
 
-ðŸ”´ CRITICAL REQUIREMENTS:
-1. You MUST include ALL of the following ingredients: ${ingredients.join(', ')}
+🧠 INGREDIENT COMPATIBILITY CHECK (do this before generating):
+- Categorize each ingredient: protein (chicken, mutton, fish, egg, paneer), dairy (milk, curd, cream), fruit (banana, mango, apple), vegetable (potato, tomato, spinach), grain (rice, wheat, oats), legume (dal, lentil, chickpea).
+- Identify incompatible combinations:
+  * fruit/dairy (milk, banana) + meat (chicken, mutton) = INCOMPATIBLE — never mix these
+  * banana + milk = compatible (shake/smoothie/dessert)
+  * chicken + vegetables = compatible (curry/stir-fry)
+  * milk + rice = compatible (kheer/porridge)
+- If ALL ingredients are compatible → use all of them in the recipe.
+- If there are incompatible ingredients → pick the LARGEST compatible group and build the recipe around only that group. Silently ignore the incompatible ones.
+- NEVER force-combine ingredients that are culinarily wrong or produce an unappetizing dish.
+
 2. Generate INGREDIENT-SPECIFIC preparation and cooking instructions using professional Indian techniques.
 
+🔥 HIGHLY DETAILED INSTRUCTIONS REQUIREMENT (CRITICAL):
+Every single step in the "steps" array must be highly detailed, comprehensive, and consist of at least 3 to 5 clear, descriptive sentences.
+Each step must contain:
+1. SPECIFIC ACTIONS & SETTINGS: Describe exact physical actions (e.g., "whisk vigorously", "fold gently", "slice into uniform 1-inch cubes") and precise flame/heat levels (e.g., "low heat to prevent curdling", "high heat for quick searing").
+2. VISUAL, TEXTURAL & AROMATIC CUES: Tell the user exactly what to look, feel, or smell for (e.g., "sauté until the onions turn translucent and develop a light golden-brown edge", "cook until the raw pungent smell of ginger-garlic paste is replaced by a sweet, aromatic fragrance", "cook until you see tiny droplets of oil separating and forming a thin layer on the outer edges of the masala paste").
+3. CULINARY REASONING (EXPLAIN WHY): Explain the chef's logic behind the technique (e.g., "Blooming the whole cumin seeds in medium-hot ghee activates the fat-soluble essential oils, distributing a rich earthy base flavor throughout the entire dish", "Resting the meat allows the protein fibers to relax and reabsorb their natural juices, making every bite incredibly tender").
+4. PITFALLS TO AVOID: Highlight what can go wrong and how to prevent it (e.g., "Keep the heat low at this stage because dry chili powder and turmeric burn very quickly, which would turn the entire gravy bitter and dark").
 
-ðŸ“‹ TECHNIQUE REQUIREMENTS:
+📋 TECHNIQUE REQUIREMENTS:
 
 **RAW / NO-HEAT PREPARATION (If the dish is a Shake, Salad, or Drink):**
 - BLENDING: Proper order of ingredients, pulse techniques for desired consistency.
@@ -27,7 +43,7 @@ CONTEXT & STYLE:
 - RICE/GRAINS: 1:2 water ratio, washing 3-4 times, soaking for 30 mins, and steaming for 5 mins.
 - EXPLAIN WHY: Include the logic for techniques (e.g., "Bhuna ensures the raw smell of spices is replaced by a rich aroma").
 
-ðŸŽ¯ HEALTH MODE ADAPTATIONS (Indian Context):
+🎯 HEALTH MODE ADAPTATIONS (Indian Context):
 **Keto:** Use Ghee/Butter, focus on paneer/meat/nuts, avoid sugars/starches.
 **Diabetic:** Use Millets/Oats if provided, focus on leafy greens, use low-GI alternatives.
 **HighProtein:** Prioritize dals, legumes, and lean proteins like curd or chicken.
@@ -50,7 +66,7 @@ Format as JSON with these exact keys:
   "steps": [
     {
       "stepNumber": number,
-      "instruction": "string (Detailed Indian technique-focused step)",
+      "instruction": "string (Highly detailed, 3-5 sentence step containing actions, heat levels, visual/aromatic cues, culinary reasons, and common pitfalls to avoid)",
       "duration": number
     }
   ],

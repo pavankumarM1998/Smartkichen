@@ -16,6 +16,14 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// Strips markdown code fences OpenAI sometimes wraps around JSON responses
+const sanitizeJSON = (raw) => {
+  return raw
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/\s*```$/, '')
+    .trim();
+};
+
 const callAI = async (prompt, maxTokens = 2000) => {
   try {
     const response = await openai.chat.completions.create({
@@ -23,7 +31,7 @@ const callAI = async (prompt, maxTokens = 2000) => {
       messages: [
         {
           role: 'system',
-          content: 'You are a professional culinary AI assistant. Always return valid JSON responses.',
+          content: 'You are a professional culinary AI assistant. Always return valid JSON responses without any markdown formatting or code fences.',
         },
         {
           role: 'user',
@@ -32,9 +40,7 @@ const callAI = async (prompt, maxTokens = 2000) => {
       ],
       temperature: parseFloat(process.env.AI_TEMPERATURE || '0.7'),
       max_tokens: maxTokens,
-      timeout: parseInt(process.env.AI_MODEL_TIMEOUT || '30000'),
     });
-
     return response.choices[0].message.content;
   } catch (error) {
     console.error('OpenAI API Error:', error);
@@ -42,11 +48,11 @@ const callAI = async (prompt, maxTokens = 2000) => {
   }
 };
 
-const generateRecipe = async (ingredients, healthMode = 'Normal', servings = 4) => {
+const generateRecipe = async (ingredients, healthMode = 'Normal', servings = 4, language = 'en') => {
   try {
-    const prompt = recipeGenerationPrompt(ingredients, healthMode, servings);
+    const prompt = recipeGenerationPrompt(ingredients, healthMode, servings, language);
     const response = await callAI(prompt, 2500);
-    return JSON.parse(response);
+    return JSON.parse(sanitizeJSON(response));
   } catch (error) {
     console.error('Recipe generation error:', error);
     throw error;
@@ -57,7 +63,7 @@ const getSubstitutes = async (missingIngredient, availableIngredients, dishType 
   try {
     const prompt = substitutionPrompt(missingIngredient, availableIngredients, dishType);
     const response = await callAI(prompt);
-    return JSON.parse(response);
+    return JSON.parse(sanitizeJSON(response));
   } catch (error) {
     console.error('Substitution error:', error);
     throw error;
@@ -68,7 +74,7 @@ const estimateNutrition = async (ingredients, servings = 1) => {
   try {
     const prompt = nutritionPrompt(ingredients, servings);
     const response = await callAI(prompt);
-    return JSON.parse(response);
+    return JSON.parse(sanitizeJSON(response));
   } catch (error) {
     console.error('Nutrition estimation error:', error);
     throw error;
@@ -79,7 +85,7 @@ const rateDifficulty = async (recipeTitle, ingredients, steps) => {
   try {
     const prompt = difficultyRatingPrompt(recipeTitle, ingredients, steps);
     const response = await callAI(prompt);
-    return JSON.parse(response);
+    return JSON.parse(sanitizeJSON(response));
   } catch (error) {
     console.error('Difficulty rating error:', error);
     throw error;
@@ -90,7 +96,7 @@ const adjustForHealthMode = async (recipe, healthMode) => {
   try {
     const prompt = healthModePrompt(recipe, healthMode);
     const response = await callAI(prompt);
-    return JSON.parse(response);
+    return JSON.parse(sanitizeJSON(response));
   } catch (error) {
     console.error('Health mode adjustment error:', error);
     throw error;
@@ -101,7 +107,7 @@ const personalizeRecommendations = async (userProfile, availableRecipes) => {
   try {
     const prompt = tastePersonalizationPrompt(userProfile, availableRecipes);
     const response = await callAI(prompt);
-    return JSON.parse(response);
+    return JSON.parse(sanitizeJSON(response));
   } catch (error) {
     console.error('Personalization error:', error);
     throw error;
@@ -112,7 +118,7 @@ const suggestWasteReduction = async (recipe, ingredients) => {
   try {
     const prompt = wasteReductionPrompt(recipe, ingredients);
     const response = await callAI(prompt);
-    return JSON.parse(response);
+    return JSON.parse(sanitizeJSON(response));
   } catch (error) {
     console.error('Waste reduction suggestion error:', error);
 
@@ -152,7 +158,7 @@ const convertCuisine = async (originalRecipe, targetCuisine) => {
   try {
     const prompt = cuisineConverterPrompt(originalRecipe, targetCuisine);
     const response = await callAI(prompt);
-    return JSON.parse(response);
+    return JSON.parse(sanitizeJSON(response));
   } catch (error) {
     console.error('Cuisine conversion error:', error);
 
@@ -198,7 +204,7 @@ const generateMealPlan = async (userPreferences, restrictions, servings = 4, pan
   try {
     const prompt = mealPlanPrompt(userPreferences, restrictions, servings, pantryItems, searchQuery);
     const response = await callAI(prompt, 3000);
-    return JSON.parse(response);
+    return JSON.parse(sanitizeJSON(response));
   } catch (error) {
     console.error('Meal plan generation error:', error);
     throw error;
@@ -229,7 +235,7 @@ const analyzeImage = async (base64Image) => {
       max_tokens: 2000,
     });
 
-    return JSON.parse(response.choices[0].message.content);
+    return JSON.parse(sanitizeJSON(response.choices[0].message.content));
   } catch (error) {
     console.error('Image analysis error:', error);
     
